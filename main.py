@@ -17,6 +17,7 @@ st.image(image, width=450)
 st.sidebar.header('User Input')
 
 username = st.sidebar.text_input('Identificati con una tua mail (non sarà visibile agli altri utenti)', placeholder="e.g. iamcool@coolest.it" )
+#regex mail
 
 if not username:
     st.markdown("""
@@ -66,16 +67,17 @@ elif username == config.root:
         for f in to_delete:
             os.remove(os.path.join(mydir, f))
             st.write(f)
+    #mettere anche funzione per cancellare da final delle righe di utenti sbagliati per esempio (deve diventare dashboard di controllo)
 
 else:
     with st.sidebar:
 
-        meal = st.multiselect('Cosa vuoi mangiare?', ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"))
+        meal = st.multiselect('Cosa vuoi mangiare?', ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), help="Utile solo nel caso di ricerca per similarità con altri utenti")
         city = st.text_input('Città', placeholder="e.g. Ferrara", key = "field").capitalize()
         province = st.text_input('Provincia (sigla)', placeholder="e.g. FE", max_chars=2).upper()
         state = st.text_input('Stato', placeholder="e.g. Italia").capitalize()
-        border = st.selectbox("Confine di ricerca", ("comune", "provincia"), help="Utile nel caso non esistano match con altri utenti in base alla ricerca effettuata")
-        epp = st.slider("Range spesa per persona", 1, 100, (15, 50), help="Utile nel caso di ricerca per similarità con altri utenti")
+        border = st.selectbox("Confine di ricerca", ("comune", "provincia"))
+        epp = st.slider("Range spesa per persona", 1, 100, (15, 50), help="Utile solo nel caso di ricerca per similarità con altri utenti")
 
     if "border" not in st.session_state:
         st.session_state["border"] = border
@@ -128,6 +130,7 @@ else:
                     suggests.to_csv("suggests.csv")
                     final = pd.read_csv("final.csv", index_col=0).drop_duplicates(subset=["name", "user", "what"], keep = 'last').reset_index(drop=True)
                     final.to_csv("final.csv")
+                    st.experimental_rerun()
 
             else:
                 st.write("Non hai nessun ristorante salvato da valutare. Scegline prima uno e, dopo averlo provato, torna qua a valutarlo.")
