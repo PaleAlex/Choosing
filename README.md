@@ -11,4 +11,4 @@ First committed in 10-2022. Work in progress.
 
 If you want to support me on developing this idea, you cancontribute [here](https://www.buymeacoffee.com/palealex)
 
-Thank you :) :heart: :smile:
+Thank you :heart: :smile:
