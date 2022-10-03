@@ -6,7 +6,7 @@ import pyautogui
 import time
 import os
 from datetime import date, timedelta
-
+os.environ['DISPLAY'] = ':0'
 
 st.set_page_config(layout="wide")
 image = Image.open('logo.png')
@@ -18,7 +18,7 @@ def reset():
         time.sleep(2)
         pyautogui.hotkey("ctrl","r")
     except:
-
+        time.sleep(2)
         pyautogui.hotkey("command","r")
     else:
         time.sleep(2)
