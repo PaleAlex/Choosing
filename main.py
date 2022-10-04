@@ -4,6 +4,7 @@ import streamlit as st
 from PIL import Image
 import os
 from datetime import date, timedelta
+import re
 
 
 st.set_page_config(layout="wide")
@@ -16,8 +17,14 @@ st.image(image, width=450)
 
 st.sidebar.header('User Input')
 
+def check(s):
+    pat = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    if re.match(pat,s):
+        return s
+    else:
+        return None
+
 username = st.sidebar.text_input('Identificati con una tua mail (non sarà visibile agli altri utenti)', placeholder="e.g. iamcool@coolest.it" )
-#regex mail
 
 if not username:
     st.markdown("""
@@ -25,7 +32,7 @@ if not username:
 # Cos'è Choosing?
 
 La sua missione unica e imprescindibile è quella di generare un consiglio personalizzato per il tuo prossimo ristorante.
-Finalmente, non dovrai più scrivere a Pippo  *"Oh Pippo sono a Roma, dimmi dove posso andare a mangiare un ottima pizza*", perchè la risposta te la da Choosing, che è molto più disponibile e preciso di Pippo.
+Finalmente, non dovrai più scrivere a Pippo  *"Oh Pippo sono a Roma, dimmi dove posso andare a mangiare un'ottima pizza*", perchè la risposta te la da Choosing, che è molto più disponibile e preciso di Pippo.
 E basta anche con tutto quel tempo speso davanti ai siti di recensioni a contare le stelline e a confrontare prezzi e numero di commenti delle infinite alternative per poi
 finire a mangiare nella solita osteria.
 
@@ -72,6 +79,8 @@ Lo sviluppo web e lo studio delle proprietà delle Serie Temporali mi divertono 
 
 """)
 
+elif not check(username):
+    st.warning('Email non valida', icon="⚠️")
 
 elif username == config.root:
     with open('final.csv') as f:
