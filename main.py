@@ -28,7 +28,8 @@ username = st.sidebar.text_input('Identificati con una tua mail (non sarà visib
 
 if not username:
     st.markdown("""
-    
+<div style = "text-align: justify;">
+
 # Cos'è Choosing?
 
 La sua missione unica e imprescindibile è quella di generare un consiglio personalizzato per il tuo prossimo ristorante.
@@ -39,7 +40,6 @@ finire a mangiare nella solita osteria.
 Dedica il tuo tempo alle cose migliori. A sceglierle ci pensa Choosing.
 
 Enjoy the perfect meal.
-
 
 
 ## Come funziona?
@@ -77,9 +77,11 @@ Gestisco il mio tempo tra tentativi di scrivere qualcosa che somigli a bel codic
 
 Lo sviluppo web e lo studio delle proprietà delle Serie Temporali mi divertono particolarmente.
 
-""")
+</div>
 
-elif not check(username):
+""", unsafe_allow_html=True)
+
+elif not check(username) and username != config.root:
     st.warning('Email non valida', icon="⚠️")
 
 elif username == config.root:
