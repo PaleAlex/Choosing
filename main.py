@@ -21,35 +21,56 @@ username = st.sidebar.text_input('Identificati con una tua mail (non sarà visib
 
 if not username:
     st.markdown("""
+    
+# Cos'è Choosing?
 
-                ##### Ciao a tutti :sunglasses:
-                **Vi presento Choosing nella sua versione adolescenziale - aka beta. \
-                La sua missione unica e imprescindibile è quella di consigliare a tutti IL ristorante. \
-                Non è per nulla democratico; Choosing ne sceglie per voi UNO (e uno solo), avendo cura però di provare a scegliere il migliore. \
-                Come fa?**
+La sua missione unica e imprescindibile è quella di generare un consiglio personalizzato per il tuo prossimo ristorante.
+Finalmente, non dovrai più scrivere a Pippo  *"Oh Pippo sono a Roma, dimmi dove posso andare a mangiare un ottima pizza*", perchè la risposta te la da Choosing, che è molto più disponibile e preciso di Pippo.
+E basta anche con tutto quel tempo speso davanti ai siti di recensioni a contare le stelline e a confrontare prezzi e numero di commenti delle infinite alternative per poi
+finire a mangiare nella solita osteria.
+
+Dedica il tuo tempo alle cose migliori. A sceglierle ci pensa Choosing.
+
+Enjoy the perfect meal.
+
+
+
+## Come funziona?
+
+Choosing usa due strategie alternative:
                 
-                **Usa due strategie alternative:**
-                
-                **1. Ricerca per similarità tra gli utenti di Choosing in base ai ristoranti in comune e ai rating assegnati**
-                
-                **2. Qualora 1. non restituisca un risultato, Choosing sceglie il ristorante migliore basandosi sulle recensioni di Google**
-                
-                **Il consiglio che deriva da 1. è molto più personalizzato rispetto a quello di 2. ed è il vero orgoglio di Choosing. \
-                L'unica condizione affinché si verifichi è la partecipazione attiva di tanti utenti e il passaparola, se credete nei superpoteri di Choosing. \
-                Prendete i suoi consigli, andate a mangiare, tornate qua a dare un voto alla vostra esperienza e continuate a giocare. Più si allargherà la community e più sarà divertente. \
-                
-                Ma non perdiamo altro tempo, identificatevi con una vostra mail nel menù a sinistra e buonappe!**
-                
-                
-                
-                ...ah, ehm, ecco, un'ultima cosa. Mantenere e migliorare Choosing ha qualche costo (APIs, server...). \
-                Se credete che Choosing sia una bella idea e utile, potete sostenermi con una piccola donazione qua: [Buy me a :coffee:](https://www.buymeacoffee.com/palealex).
-                
-                Per suggerimenti o per rimanere semplicemente in contatto <a href="mailto:aless.ciocchetti@gmail.com"> scrivimi qua :speech_balloon: </a>
-                
-                Un SUPER GRAZIE!
-                
-                """, unsafe_allow_html=True)
+ 1. Ricerca per similarità tra gli utenti di Choosing in base ai ristoranti in comune e ai rating assegnati
+
+ 2. Qualora 1. non restituisca un risultato, Choosing sceglie il ristorante migliore basandosi sulle recensioni di Google
+
+Il consiglio che deriva da 1. è molto più personalizzato rispetto a quello di 2. ed è il vero orgoglio di Choosing. L'unica condizione affinché si verifichi è la partecipazione attiva di tanti utenti e il passaparola, se credi nei superpoteri di Choosing.
+
+Per cominciare, identificati con una mail nel menù a sinistra e buon appetito :)
+
+
+## Feedback
+
+Per suggerimenti o per rimanere semplicemente in contatto scrivimi a aless.ciocchetti@gmail.com
+
+
+## Support
+
+Mantenere e migliorare Choosing ha qualche costo (APIs, server...).
+
+Se credi che Choosing sia una bella e utile idea, puoi sostenerla con una piccola donazione qua: [Buy me a coffee](https://www.buymeacoffee.com/palealex)
+
+
+## Author
+
+- [Alessandro Ciocchetti](https://www.linkedin.com/in/ac-palealex/)
+
+
+## 🚀 About Me
+Gestisco il mio tempo tra tentativi di scrivere qualcosa che somigli a bel codice, di sviluppare idee che ricordino grandi progetti, di suonare l'armonica come la suonava Paul Butterfield.
+
+Lo sviluppo web e lo studio delle proprietà delle Serie Temporali mi divertono particolarmente.
+
+""")
 
 
 elif username == config.root:
@@ -86,8 +107,9 @@ else:
         st.write("*Per conoscere il tuo prossimo miglior ristorante, compila tutti i campi del menù laterale. Se invece devi ancora valutare un ristorante in cui sei stato, continua prima qui sotto*")
 
         #reviewing
-        container = st.expander("ECCO I RISTORANTI A CUI POTRESTI LASCIARE UNA VALUTAZIONE")
-        with container:
+
+        container1 = st.expander("VEDI I RISTORANTI A CUI POTRESTI LASCIARE UNA VALUTAZIONE")
+        with container1:
             def user_to_review():
                 data = pd.read_csv("suggests.csv", index_col=0, parse_dates=True)
                 return data[data["user"] == username].drop_duplicates(keep= 'last').reset_index(drop= True)
@@ -135,6 +157,16 @@ else:
             else:
                 st.write("Non hai nessun ristorante salvato da valutare. Scegline prima uno e, dopo averlo provato, torna qua a valutarlo.")
 
+        container2 = st.expander("VEDI I RISTORANTI A CUI HAI LASCIATO UNA VALUTAZIONE")
+        with container2:
+            def user_reviewed():
+                data = pd.read_csv("final.csv", index_col=0)
+                return data[data["user"] == username].drop_duplicates(keep= 'last').reset_index(drop= True)
+            if len(user_reviewed()) > 0:
+                to_be_reviewed = user_reviewed()
+                st.dataframe(data=to_be_reviewed.iloc[:, [0,1,3,5,6,7]])
+            else:
+                st.write("Non hai ancora lasciato nessuna valutazione.")
     else:
         #choosing object
         ch = Choosing(username, meal, city, province, state, epp, border)
