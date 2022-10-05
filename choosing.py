@@ -5,6 +5,14 @@ import json
 from datetime import datetime
 import geocoder
 import config
+import os
+from google.cloud import storage
+import io
+
+PATH = os.path.join(os.getcwd(), 'skilled-bonus-284420-d6d56288fa20.json')
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = PATH
+storage_client = storage.Client(PATH)
+bucket = storage_client.get_bucket('choosing-storage')
 
 class Choosing():
 
@@ -31,7 +39,12 @@ class Choosing():
 
     def read_temp(self):
         try:
-            temp = pd.read_csv(f"user_temps/temp_{self.username}.csv", index_col = 0)
+            temp = pd.read_csv(
+                io.BytesIO(
+                    bucket.blob(blob_name = f"user_temps/temp_{self.username}.csv").download_as_bytes()
+                ),
+                index_col = 0, encoding = 'utf-8'
+            )
             return temp
         except:
             return pd.DataFrame(columns=["place_id", "name", "lat", "lng", "rating", "n_rating", "vicinity"])
@@ -60,6 +73,10 @@ class Choosing():
             possibilities = sorted(possibilities, key=lambda x: x[4] * np.log(0.001+np.sqrt(x[5])), reverse=True)[:8]
             df = pd.DataFrame(data=possibilities, columns=["place_id", "name", "lat", "lng", "rating", "n_rating", "vicinity"])
             df.to_csv(f"user_temps/temp_{self.username}.csv", encoding="utf-8")
+            filename = f"user_temps/temp_{self.username}.csv"
+            UPLOADFILE = os.path.join(os.getcwd(),filename)
+            blob = bucket.blob(filename)
+            blob.upload_from_filename(UPLOADFILE)
             return df
         else:
             df = self.read_temp()
@@ -79,7 +96,14 @@ class Choosing():
 
     def inv_index(self):
         ii = {}
-        final = pd.read_csv("final.csv", index_col=0).reset_index(drop= True)
+
+        final = pd.read_csv(
+            io.BytesIO(
+                bucket.blob(blob_name = "final.csv").download_as_bytes()
+            ),
+            index_col = 0, encoding = 'utf-8'
+        ).reset_index(drop= True)
+
         final_w_meal = final[ (final["what"].isin(self.meal) )]
 
         for us in set(final_w_meal["user"]):

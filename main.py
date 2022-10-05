@@ -11,7 +11,7 @@ st.set_page_config(layout="wide")
 image = Image.open('logo.png')
 
 st.image(image, width=450)
-
+bucket = bucket
 
 #inputs
 
@@ -81,29 +81,28 @@ Lo sviluppo web e lo studio delle proprietà delle Serie Temporali mi divertono 
 
 """, unsafe_allow_html=True)
 
-elif not check(username) and username != config.root:
+elif not check(username): #and username != config.root:
     st.warning('Email non valida', icon="⚠️")
 
-elif username == config.root:
-    with open('final.csv') as f:
-        st.download_button('final', f, mime='text/csv')
-    with open('suggests.csv') as f:
-        st.download_button('suggests', f, mime='text/csv')
-    canc = st.checkbox("cancella file temporanei")
-    mydir = "user_temps/"
-    filelist = [ f for f in os.listdir(mydir) if f.endswith(".csv") ]
-    st.write("numero file temporanei esistenti ", len(filelist))
-    to_delete = st.multiselect('Delete', filelist, filelist)
+#elif username == config.root:
+#    with open('final.csv') as f:
+#        st.download_button('final', f, mime='text/csv')
+#    with open('suggests.csv') as f:
+#        st.download_button('suggests', f, mime='text/csv')
+#    canc = st.checkbox("cancella file temporanei")
+#    mydir = "user_temps/"
+#    filelist = [ f for f in os.listdir(mydir) if f.endswith(".csv") ]
+#    st.write("numero file temporanei esistenti ", len(filelist))
+#    to_delete = st.multiselect('Delete', filelist, filelist)
 
-    if canc:
-        for f in to_delete:
-            os.remove(os.path.join(mydir, f))
-            st.write(f)
+#    if canc:
+#        for f in to_delete:
+#            os.remove(os.path.join(mydir, f))
+#            st.write(f)
     #mettere anche funzione per cancellare da final delle righe di utenti sbagliati per esempio (deve diventare dashboard di controllo)
 
 else:
     with st.sidebar:
-
         meal = st.multiselect('Cosa vuoi mangiare?', ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), help="Utile solo nel caso di ricerca per similarità con altri utenti")
         city = st.text_input('Città', placeholder="e.g. Ferrara", key = "field").capitalize()
         province = st.text_input('Provincia (sigla)', placeholder="e.g. FE", max_chars=2).upper()
@@ -113,6 +112,8 @@ else:
 
     if "border" not in st.session_state:
         st.session_state["border"] = border
+    if "geo" not in st.session_state:
+        st.session_state["geo"] = (city, province)
 
     if not meal or not city or not province or not state:
         st.write("*Per conoscere il tuo prossimo miglior ristorante, compila tutti i campi del menù laterale. Se invece devi ancora valutare un ristorante in cui sei stato, continua prima qui sotto*")
@@ -122,7 +123,12 @@ else:
         container1 = st.expander("VEDI I RISTORANTI A CUI POTRESTI LASCIARE UNA VALUTAZIONE")
         with container1:
             def user_to_review():
-                data = pd.read_csv("suggests.csv", index_col=0, parse_dates=True)
+                data = pd.read_csv(
+                    io.BytesIO(
+                        bucket.blob(blob_name = "suggests.csv").download_as_bytes()
+                    ),
+                    index_col = 0, encoding = 'utf-8'
+                )
                 return data[data["user"] == username].drop_duplicates(keep= 'last').reset_index(drop= True)
             if len(user_to_review()) > 0:
                 to_be_reviewed = user_to_review()
@@ -144,15 +150,26 @@ else:
 
                 if ok:
                     st.balloons()
-                    st.success("Grazie per il tuo contributo. Aggiorna la pagina e continua a usare Choosing :) ", icon = "✅")
+                    st.success("Grazie per il tuo contributo. Continua a usare Choosing :) ", icon = "✅")
                     reviewed["rate"] = reviewed_rate
                     reviewed["what"] = reviewed_meal.capitalize()
                     reviewed["epp"] = reviewed_epp
                     with open('final.csv', 'a', encoding='utf-8') as f:
                         reviewed.to_csv(f, mode='a', header=f.tell()==0)
+                    filename = "final.csv"
+                    UPLOADFILE = os.path.join(os.getcwd(),filename)
+                    blob = bucket.blob(filename)
+                    blob.upload_from_filename(UPLOADFILE)
+
                     tendaysago = date.today() - timedelta(10)
 
-                    suggests = pd.read_csv("suggests.csv", index_col=0).reset_index(drop=True)
+                    suggests = pd.read_csv(
+                        io.BytesIO(
+                            bucket.blob(blob_name = "suggests.csv").download_as_bytes()
+                        ),
+                        index_col = 0, encoding = 'utf-8'
+                    ).reset_index(drop=True)
+
                     suggests["added"] = pd.to_datetime(suggests["added"], format='%Y-%m-%d').dt.date
 
                     try:
@@ -161,8 +178,24 @@ else:
                         pass
                     suggests = suggests[suggests["added"] > tendaysago].reset_index(drop=True)
                     suggests.to_csv("suggests.csv")
-                    final = pd.read_csv("final.csv", index_col=0).drop_duplicates(subset=["name", "user", "what"], keep = 'last').reset_index(drop=True)
+                    filename = "suggests.csv"
+                    UPLOADFILE = os.path.join(os.getcwd(),filename)
+                    blob = bucket.blob(filename)
+                    blob.upload_from_filename(UPLOADFILE)
+
+                    final = pd.read_csv(
+                        io.BytesIO(
+                            bucket.blob(blob_name = "final.csv").download_as_bytes()
+                        ),
+                        index_col = 0, encoding = 'utf-8'
+                    ).drop_duplicates(subset=["name", "user", "what"], keep = 'last').reset_index(drop=True)
+
                     final.to_csv("final.csv")
+                    filename = "final.csv"
+                    UPLOADFILE = os.path.join(os.getcwd(),filename)
+                    blob = bucket.blob(filename)
+                    blob.upload_from_filename(UPLOADFILE)
+
                     st.experimental_rerun()
 
             else:
@@ -171,8 +204,14 @@ else:
         container2 = st.expander("VEDI I RISTORANTI A CUI HAI LASCIATO UNA VALUTAZIONE")
         with container2:
             def user_reviewed():
-                data = pd.read_csv("final.csv", index_col=0)
+                data = pd.read_csv(
+                    io.BytesIO(
+                        bucket.blob(blob_name = "final.csv").download_as_bytes()
+                    ),
+                    index_col = 0, encoding = 'utf-8'
+                )
                 return data[data["user"] == username].drop_duplicates(keep= 'last').reset_index(drop= True)
+
             if len(user_reviewed()) > 0:
                 to_be_reviewed = user_reviewed()
                 st.dataframe(data=to_be_reviewed.iloc[:, [0,1,3,5,6,7]])
@@ -181,12 +220,18 @@ else:
     else:
         #choosing object
         ch = Choosing(username, meal, city, province, state, epp, border)
-        if border != st.session_state["border"]:
+        if border != st.session_state["border"] or (city, province) != st.session_state["geo"]:
             df = (
                 ch.read_temp()[0:0]
                 .to_csv(f"user_temps/temp_{username}.csv", encoding='utf-8')
             )
+            filename = f"user_temps/temp_{username}.csv"
+            UPLOADFILE = os.path.join(os.getcwd(),filename)
+            blob = bucket.blob(filename)
+            blob.upload_from_filename(UPLOADFILE)
+
             st.session_state["border"] = border
+            st.session_state["geo"] = (city, province)
 
         #suggests
 
@@ -197,7 +242,7 @@ else:
                 if type_of_choice == 'matched':
                     chose = ch.matched_choice(choice = n_rist)
                     st.markdown('''
-                        ******Trovato! In base al match con gli altri utenti:******
+                        ******Trovato :tada: ! In base al match con gli altri utenti:******
                         
                         *(se sei già stato in tutte le proposte di Choosing prova a modificare i criteri di ricerca, oppure torna nel migliore e assaggia qualcosa di nuovo!)*
                         ''')
@@ -240,11 +285,22 @@ else:
                         st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
                         with open('suggests.csv', 'a', encoding='utf-8') as f:
                             chose.to_csv(f, mode='a', header=f.tell() == 0, encoding='utf-8')
+                        filename = "suggests.csv"
+                        UPLOADFILE = os.path.join(os.getcwd(),filename)
+                        blob = bucket.blob(filename)
+                        blob.upload_from_filename(UPLOADFILE)
+
                         df = (
                             ch.read_temp()[0:0]
                             .to_csv(f"user_temps/temp_{username}.csv", encoding='utf-8')
                         )
+                        filename = f"user_temps/temp_{username}.csv"
+                        UPLOADFILE = os.path.join(os.getcwd(),filename)
+                        blob = bucket.blob(filename)
+                        blob.upload_from_filename(UPLOADFILE)
+
                         del st.session_state["border"]
+                        del st.session_state["geo"]
 
                 elif alt > 1:
                     already = st.checkbox("Ci sono già stato, dimmene un altro")
@@ -270,11 +326,22 @@ else:
                         st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
                         with open('suggests.csv', 'a', encoding='utf-8') as f:
                             chose.to_csv(f, mode='a', header=f.tell() == 0, encoding='utf-8')
+                        filename = "suggests.csv"
+                        UPLOADFILE = os.path.join(os.getcwd(),filename)
+                        blob = bucket.blob(filename)
+                        blob.upload_from_filename(UPLOADFILE)
+
                         df = (
                             ch.read_temp()[0:0]
                             .to_csv(f"user_temps/temp_{username}.csv", encoding='utf-8')
                         )
+                        filename = f"user_temps/temp_{username}.csv"
+                        UPLOADFILE = os.path.join(os.getcwd(),filename)
+                        blob = bucket.blob(filename)
+                        blob.upload_from_filename(UPLOADFILE)
+
                         del st.session_state["border"]
+                        del st.session_state["geo"]
 
                 else:
                     raise Exception("...")
@@ -285,8 +352,8 @@ else:
                 if alt == 1:
                     n_rist = 0
                     html, chose = markdown_and_save(n_rist, type_of_choice="random")
-
                     st.markdown(html, unsafe_allow_html=True)
+
                     form = st.form(key="case3", clear_on_submit = True)
                     with form:
                         ok = st.checkbox("Ok, scelgo questo!")
@@ -296,11 +363,22 @@ else:
                         st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
                         with open('suggests.csv', 'a', encoding='utf-8') as f:
                             chose.to_csv(f, mode='a', header=f.tell() == 0, encoding='utf-8')
+                        filename = "suggests.csv"
+                        UPLOADFILE = os.path.join(os.getcwd(),filename)
+                        blob = bucket.blob(filename)
+                        blob.upload_from_filename(UPLOADFILE)
+
                         df = (
                             ch.read_temp()[0:0]
                             .to_csv(f"user_temps/temp_{username}.csv", encoding='utf-8')
                         )
+                        filename = f"user_temps/temp_{username}.csv"
+                        UPLOADFILE = os.path.join(os.getcwd(),filename)
+                        blob = bucket.blob(filename)
+                        blob.upload_from_filename(UPLOADFILE)
+
                         del st.session_state["border"]
+                        del st.session_state["geo"]
 
                 elif alt > 1:
                     already = st.checkbox("Ci sono già stato, dimmene un altro")
@@ -314,8 +392,8 @@ else:
                     n_rist = rist_slider - 1
 
                     html, chose = markdown_and_save(n_rist, type_of_choice="random")
-
                     st.markdown(html, unsafe_allow_html=True)
+
                     form = st.form(key="case4", clear_on_submit = True)
                     with form:
                         ok = st.checkbox("Ok, scelgo questo!")
@@ -325,11 +403,22 @@ else:
                         st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
                         with open('suggests.csv', 'a', encoding='utf-8') as f:
                             chose.to_csv(f, mode='a', header=f.tell() == 0, encoding='utf-8')
+                        filename = "suggests.csv"
+                        UPLOADFILE = os.path.join(os.getcwd(),filename)
+                        blob = bucket.blob(filename)
+                        blob.upload_from_filename(UPLOADFILE)
+
                         df = (
                             ch.read_temp()[0:0]
                             .to_csv(f"user_temps/temp_{username}.csv", encoding='utf-8')
                         )
+                        filename = f"user_temps/temp_{username}.csv"
+                        UPLOADFILE = os.path.join(os.getcwd(),filename)
+                        blob = bucket.blob(filename)
+                        blob.upload_from_filename(UPLOADFILE)
+
                         del st.session_state["border"]
+                        del st.session_state["geo"]
 
                 if alt == 0:
                     st.write("Nessun consiglio per i criteri ricercati.")
