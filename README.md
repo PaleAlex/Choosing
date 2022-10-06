@@ -2,7 +2,7 @@
 # Cos'è Choosing?
 
 La sua missione unica e imprescindibile è quella di generare un consiglio personalizzato per il tuo prossimo ristorante.
-Finalmente, non dovrai più scrivere a Pippo  *"Oh Pippo sono a Roma, dimmi dove posso andare a mangiare un ottima pizza*", perchè la risposta te la da Choosing, che è molto più disponibile e preciso di Pippo.
+Finalmente, non dovrai più scrivere a Pippo  *"Oh Pippo sono a Roma, dimmi dove posso andare a mangiare un'ottima pizza*", perchè la risposta te la da Choosing, che è molto più disponibile e preciso di Pippo.
 E basta anche con tutto quel tempo speso davanti ai siti di recensioni a contare le stelline e a confrontare prezzi e numero di commenti delle infinite alternative per poi
 finire a mangiare nella solita osteria.
 
