@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "skilled-bonus-284420",
+  "private_key_id": "d6d56288fa203b7947914ec26b06ba9eb410bc0c",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC5DRegZieRuGEE\n+qPT76RcrlWcw+PAF+9ntizTwkL51g9g4JowCLv8MCILUK3VCoy/1DwSUNtp4Gns\narVi/MjFcz1li3AsqiRdeEXROWuOxtbWrveSIxMwf6d2FJ5AVP3m8RTHfT+awaHR\nximAjceWRnHU9QrTTqm+evJED5NvWgoVg9RclTHFHlmI50vg19h5tSf9haPsbsjv\nKL6+24LIJmQj5HGZU5+6OAYhC8PCYHlgs0gwb/ROG8NGIQbD96d2IUyJ/uulTRwa\nGzP27ELK9OPVU4+492CNItELP2XvoHlcBdvhKa2y4WV0Ze0YJW+E0XKTZ0TtHqLE\nLxISI8XZAgMBAAECggEAKVCq/bzRCM/JmXr8KM1QPQEPTDjQGIs/gEBEMeMlYPJR\n7Kc4xZCtp9h3QV958B6y3gFciBpVYoYgIBCS/s7BZJQeGRXQragvBk9cByJyySXL\nwZK+43nBRwq5MLvZuTNAnNcmdIOaN8sTfepoSbNd5EdGEu3CxPrDGywH+vofSLTH\ns3pX65EJ03BXQWNnE5do5qgGC15rp2tD99vgeaosPOFY1WhmDb3q4lPmlsDCCNms\n4QobFAix7grj/JXuYALNq7f1hgL4Us8DUaH6Wwf4/i9pK1wEXbo04S/qVF/LLUJy\n7Zv/VmKxUdt295bOrhc/ESUFhg0ujgGP5E9Iks5kIQKBgQD1v5nJQxZr4lD9Agt5\nJPiHE9NDbL7qXJWw9HPyb9KDMa0bEdodF4j2NvnZrFg2MnjKPUae1s4On3XC41af\nrZTGzwhSmJz5I7Iv+Fa1QwcvjRDHEOm0RHJl3+f8xrnT3lrWQcY1XvljCpSap44l\nLR9N/5encTCdE/f3+P+sGSP6dwKBgQDAxUrXWSnbyE972WSQIIkFAn1Qa78vCD0c\nZ1LQsNNteoXIUost6JkaUmpjIvjSrYNeDMR9Jy2eva45XJk47yzANMksXdk6fP9z\nm93CW/Rmscbe2nAFRlrxhPmu0kV5NHIA4SkrS7S0rEZ6r30cyt4maZSnzuK8FnRi\nv3E8ySYGLwKBgEpPIoh6MchzibvHp4J9TG1D8Gj99AjX8Ceu83SGnagwGEEMN+D+\nIdsZqplIhO/2eRHmT3luSKahTzGcHrBwA4HOTpzzKtwnEBVzSXzMBNs7E6yuD40D\n+XeWqgaEbOKE5QDOqMmwq0Zoh6DwM4pIR6QFOm1WS7XjuOKRt3XpsDhnAoGAcZsU\nG0u55oPri+K3aFU0SxaHgcCuIGqrkTS3UrQTNj7x3vf+fCTLLf8KIbi3iXmmpOPD\nXLqdISNKLRYMWshhyDiToqkAX37REXH3RBbrNyZoPGfhgspOyG2EtGnJdb/Zu/j2\nSUTJj3zD4IPRqQlJ2Lt6V1cOuqhFGPkYJCmrVhMCgYB3J+xthYuhUaJZmncfFx0E\n7TqNb3xrcTrTFcWBh4u2mUD4Au9PMnGwjX0KLm+6YSQCQVWCpgCT8BpBZ1HDBNE9\nHint92s8TBXPyuuJPN43N6tRD3PKMc2hx0mJKpj0QZ34X5IE8Iclxhzzy1VXzQA1\n8ue/QdFCmbV5lN6ZoFlUQA==\n-----END PRIVATE KEY-----\n",
+  "client_email": "choosing-web-app@skilled-bonus-284420.iam.gserviceaccount.com",
+  "client_id": "107773036132313930558",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/choosing-web-app%40skilled-bonus-284420.iam.gserviceaccount.com"
+}

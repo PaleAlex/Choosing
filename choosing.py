@@ -111,7 +111,7 @@ class Choosing():
             final_w_meal_user = final_w_meal[final_w_meal["user"] == us]
 
             for r in range(len(final_w_meal_user)):
-                if self.border == 'comune': #distinzione è nella ricerca, se match è in un ristorante in provincia o in comune
+                if self.border == 'comune': #distinzione è nella ricerca, se match è in un ristorante in provincia o in comune. da capire meglio
                     cit = final_w_meal_user.iloc[r, 1].split(",")[2].strip().capitalize()
 
                     if cit == self.city:

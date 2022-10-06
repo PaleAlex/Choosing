@@ -7,7 +7,26 @@ from datetime import date, timedelta
 import re
 
 
-st.set_page_config(layout="wide")
+st.set_page_config(page_title="Choosing: enjoy your best meal",
+                   page_icon=":mag:",
+                   layout="wide",
+                   menu_items={
+                       'Get Help': "mailto:aless.ciocchetti@gmail.com",
+                       'Report a bug': 'mailto:aless.ciocchetti@gmail.com',
+                       'About': """
+                       ## FAQ
+                       
+                       ##### 1) Perchè il filtro sul tipo di pasto o sulla spesa per persona non cambia il ristorante consigliati?
+                       
+                       Nel caso di risultato non derivante da un match con altri utenti, quei due filtri non vengono applicati.
+                       Il consiglio infatti prende in considerazione solo le recensioni Google per la posizione ricercata.
+                       
+                       
+                       """
+
+                        }
+                   )
+
 image = Image.open('logo.png')
 
 st.image(image, width=450)
@@ -34,12 +53,12 @@ if not username:
 
 La sua missione unica e imprescindibile è quella di generare un consiglio personalizzato per il tuo prossimo ristorante.
 Finalmente, non dovrai più scrivere a Pippo  *"Oh Pippo sono a Roma, dimmi dove posso andare a mangiare un'ottima pizza*", perchè la risposta te la da Choosing, che è molto più disponibile e preciso di Pippo.
-E basta anche con tutto quel tempo speso davanti ai siti di recensioni a contare le stelline e a confrontare prezzi e numero di commenti delle infinite alternative per poi
+E basta anche con le ore spese davanti ai siti di recensioni a contare le stelline e a confrontare prezzi e numero di commenti delle infinite alternative per poi
 finire a mangiare nella solita osteria.
 
 Dedica il tuo tempo alle cose migliori. A sceglierle ci pensa Choosing.
 
-Enjoy the perfect meal.
+Enjoy your perfect meal.
 
 
 ## Come funziona?
