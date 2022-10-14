@@ -16,7 +16,7 @@ st.set_page_config(page_title="Choosing: enjoy your best meal",
                        'About': """
                        ## FAQ
                        
-                       ##### 1) Perchè il filtro sul tipo di pasto o sulla spesa per persona non cambia il ristorante consigliati?
+                       ##### 1) Perchè il filtro sul tipo di pasto o sulla spesa per persona non cambia il ristorante consigliato?
                        
                        Nel caso di risultato non derivante da un match con altri utenti, quei due filtri non vengono applicati.
                        Il consiglio infatti prende in considerazione solo le recensioni Google per la posizione ricercata.
@@ -43,7 +43,7 @@ def check(s):
     else:
         return None
 
-username = st.sidebar.text_input('Identificati con una tua mail (non sarà visibile agli altri utenti)', placeholder="e.g. iamcool@coolest.it" )
+username = st.sidebar.text_input('Identificati con una tua mail (non sarà visibile agli altri utenti)', placeholder="e.g. iamcool@coolest.it" ).strip().lower()
 
 if not username:
     st.markdown("""
@@ -170,11 +170,22 @@ else:
                 if ok:
                     st.balloons()
                     st.success("Grazie per il tuo contributo. Continua a usare Choosing :) ", icon = "✅")
+                    reviewed["added"] = datetime.date(datetime.now())
                     reviewed["rate"] = reviewed_rate
                     reviewed["what"] = reviewed_meal.capitalize()
                     reviewed["epp"] = reviewed_epp
-                    with open('final.csv', 'a', encoding='utf-8') as f:
-                        reviewed.to_csv(f, mode='a', header=f.tell()==0)
+
+                    final = pd.read_csv(
+                        io.BytesIO(
+                            bucket.blob(blob_name = "final.csv").download_as_bytes()
+                        ),
+                        index_col = 0, encoding = 'utf-8'
+                    )
+
+                    #with open(final, 'a', encoding='utf-8') as f:
+                        #reviewed.to_csv(f, mode='a', header=f.tell()==0)
+                    final = pd.concat([final, reviewed], axis=0, ignore_index=True)
+                    final.to_csv("final.csv")
                     filename = "final.csv"
                     UPLOADFILE = os.path.join(os.getcwd(),filename)
                     blob = bucket.blob(filename)
@@ -186,7 +197,7 @@ else:
                         io.BytesIO(
                             bucket.blob(blob_name = "suggests.csv").download_as_bytes()
                         ),
-                        index_col = 0, encoding = 'utf-8'
+                        index_col=0, encoding = 'utf-8'
                     ).reset_index(drop=True)
 
                     suggests["added"] = pd.to_datetime(suggests["added"], format='%Y-%m-%d').dt.date
@@ -302,8 +313,17 @@ else:
                     if submit:
                         st.balloons()
                         st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
-                        with open('suggests.csv', 'a', encoding='utf-8') as f:
-                            chose.to_csv(f, mode='a', header=f.tell() == 0, encoding='utf-8')
+
+                        suggests = pd.read_csv(
+                            io.BytesIO(
+                                bucket.blob(blob_name = "suggests.csv").download_as_bytes()
+                            ),
+                            index_col=0, encoding = 'utf-8'
+                        )
+                        #with open(suggests, 'a', encoding='utf-8') as f:
+                        #    chose.to_csv(f, mode='a', header=f.tell() == 0, encoding='utf-8')
+                        suggests = pd.concat([suggests, chose], axis = 0, ignore_index=True)
+                        suggests.to_csv("suggests.csv")
                         filename = "suggests.csv"
                         UPLOADFILE = os.path.join(os.getcwd(),filename)
                         blob = bucket.blob(filename)
@@ -343,8 +363,18 @@ else:
                     if submit:
                         st.balloons()
                         st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
-                        with open('suggests.csv', 'a', encoding='utf-8') as f:
-                            chose.to_csv(f, mode='a', header=f.tell() == 0, encoding='utf-8')
+
+                        suggests = pd.read_csv(
+                            io.BytesIO(
+                                bucket.blob(blob_name = "suggests.csv").download_as_bytes()
+                            ),
+                            index_col=0, encoding = 'utf-8'
+                        )
+
+                        #with open(suggests, 'a', encoding='utf-8') as f:
+                        #    chose.to_csv(f, mode='a', header=f.tell() == 0, encoding='utf-8')
+                        suggests = pd.concat([suggests, chose], axis=0, ignore_index=True)
+                        suggests.to_csv("suggests.csv")
                         filename = "suggests.csv"
                         UPLOADFILE = os.path.join(os.getcwd(),filename)
                         blob = bucket.blob(filename)
@@ -366,80 +396,105 @@ else:
                     raise Exception("...")
 
             except:
-                alt = len(ch.random_restaurants())
+                try:
+                    alt = len(ch.random_restaurants())
 
-                if alt == 1:
-                    n_rist = 0
-                    html, chose = markdown_and_save(n_rist, type_of_choice="random")
-                    st.markdown(html, unsafe_allow_html=True)
+                    if alt == 1:
+                        n_rist = 0
+                        html, chose = markdown_and_save(n_rist, type_of_choice="random")
+                        st.markdown(html, unsafe_allow_html=True)
 
-                    form = st.form(key="case3", clear_on_submit = True)
-                    with form:
-                        ok = st.checkbox("Ok, scelgo questo!")
-                    submit = form.form_submit_button("Salva")
-                    if submit:
-                        st.balloons()
-                        st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
-                        with open('suggests.csv', 'a', encoding='utf-8') as f:
-                            chose.to_csv(f, mode='a', header=f.tell() == 0, encoding='utf-8')
-                        filename = "suggests.csv"
-                        UPLOADFILE = os.path.join(os.getcwd(),filename)
-                        blob = bucket.blob(filename)
-                        blob.upload_from_filename(UPLOADFILE)
+                        form = st.form(key="case3", clear_on_submit = True)
+                        with form:
+                            ok = st.checkbox("Ok, scelgo questo!")
+                        submit = form.form_submit_button("Salva")
+                        if submit:
+                            st.balloons()
+                            st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
+                            suggests = pd.read_csv(
+                                io.BytesIO(
+                                    bucket.blob(blob_name = "suggests.csv").download_as_bytes()
+                                ),
+                                index_col=0, encoding = 'utf-8'
+                            )
 
-                        df = (
-                            ch.read_temp()[0:0]
-                            .to_csv(f"user_temps/temp_{username}.csv", encoding='utf-8')
-                        )
-                        filename = f"user_temps/temp_{username}.csv"
-                        UPLOADFILE = os.path.join(os.getcwd(),filename)
-                        blob = bucket.blob(filename)
-                        blob.upload_from_filename(UPLOADFILE)
+                            #with open(suggests, 'a', encoding='utf-8') as f:
+                            #    chose.to_csv(f, mode='a', header=f.tell() == 0, encoding='utf-8')
+                            suggests = pd.concat([suggests, chose], axis=0, ignore_index=True)
+                            suggests.to_csv("suggests.csv")
+                            filename = "suggests.csv"
+                            UPLOADFILE = os.path.join(os.getcwd(),filename)
+                            blob = bucket.blob(filename)
+                            blob.upload_from_filename(UPLOADFILE)
 
-                        del st.session_state["border"]
-                        del st.session_state["geo"]
+                            df = (
+                                ch.read_temp()[0:0]
+                                .to_csv(f"user_temps/temp_{username}.csv", encoding='utf-8')
+                            )
+                            filename = f"user_temps/temp_{username}.csv"
+                            UPLOADFILE = os.path.join(os.getcwd(),filename)
+                            blob = bucket.blob(filename)
+                            blob.upload_from_filename(UPLOADFILE)
 
-                elif alt > 1:
-                    already = st.checkbox("Ci sono già stato, dimmene un altro")
-                    if already:
-                        disabled = False
-                    else:
-                        disabled = True
-                    rist_slider = st.select_slider(
-                        'Ecco delle alternative in ordine decrescente di punteggio calcolato in base alle recensioni di Google',
-                        options=np.arange(1, alt+1, 1), disabled = disabled)
-                    n_rist = rist_slider - 1
+                            del st.session_state["border"]
+                            del st.session_state["geo"]
 
-                    html, chose = markdown_and_save(n_rist, type_of_choice="random")
-                    st.markdown(html, unsafe_allow_html=True)
+                    elif alt > 1:
+                        already = st.checkbox("Ci sono già stato, dimmene un altro")
+                        if already:
+                            disabled = False
+                        else:
+                            disabled = True
+                        rist_slider = st.select_slider(
+                            'Ecco delle alternative in ordine decrescente di punteggio calcolato in base alle recensioni di Google',
+                            options=np.arange(1, alt+1, 1), disabled = disabled)
+                        n_rist = rist_slider - 1
 
-                    form = st.form(key="case4", clear_on_submit = True)
-                    with form:
-                        ok = st.checkbox("Ok, scelgo questo!")
-                    submit = form.form_submit_button("Salva")
-                    if submit:
-                        st.balloons()
-                        st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
-                        with open('suggests.csv', 'a', encoding='utf-8') as f:
-                            chose.to_csv(f, mode='a', header=f.tell() == 0, encoding='utf-8')
-                        filename = "suggests.csv"
-                        UPLOADFILE = os.path.join(os.getcwd(),filename)
-                        blob = bucket.blob(filename)
-                        blob.upload_from_filename(UPLOADFILE)
+                        html, chose = markdown_and_save(n_rist, type_of_choice="random")
+                        st.markdown(html, unsafe_allow_html=True)
 
-                        df = (
-                            ch.read_temp()[0:0]
-                            .to_csv(f"user_temps/temp_{username}.csv", encoding='utf-8')
-                        )
-                        filename = f"user_temps/temp_{username}.csv"
-                        UPLOADFILE = os.path.join(os.getcwd(),filename)
-                        blob = bucket.blob(filename)
-                        blob.upload_from_filename(UPLOADFILE)
+                        form = st.form(key="case4", clear_on_submit = True)
+                        with form:
+                            ok = st.checkbox("Ok, scelgo questo!")
+                        submit = form.form_submit_button("Salva")
+                        if submit:
+                            st.balloons()
+                            st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
 
-                        del st.session_state["border"]
-                        del st.session_state["geo"]
+                            suggests = pd.read_csv(
+                                io.BytesIO(
+                                    bucket.blob(blob_name = "suggests.csv").download_as_bytes()
+                                ),
+                                index_col=0, encoding = 'utf-8'
+                            )
 
-                if alt == 0:
-                    st.write("Nessun consiglio per i criteri ricercati.")
+                            #with open(suggests, 'a', encoding='utf-8') as f:
+                            #    chose.to_csv(f, mode='a', header=f.tell() == 0, encoding='utf-8')
+                            suggests = pd.concat([suggests, chose], axis=0, ignore_index=True)
+                            suggests.to_csv("suggests.csv")
+
+                            filename = "suggests.csv"
+                            UPLOADFILE = os.path.join(os.getcwd(),filename)
+                            blob = bucket.blob(filename)
+                            blob.upload_from_filename(UPLOADFILE)
+
+                            df = (
+                                ch.read_temp()[0:0]
+                                .to_csv(f"user_temps/temp_{username}.csv", encoding='utf-8')
+                            )
+                            filename = f"user_temps/temp_{username}.csv"
+                            UPLOADFILE = os.path.join(os.getcwd(),filename)
+                            blob = bucket.blob(filename)
+                            blob.upload_from_filename(UPLOADFILE)
+
+                            del st.session_state["border"]
+                            del st.session_state["geo"]
+
+                    if alt == 0:
+                        st.write("Nessun consiglio per i criteri ricercati.")
+
+                except:
+                    st.write("La ricerca non è andata a buon fine... Verifica che le informazioni nei campi da te inserite siano coerenti, o prova a riaggiornare la pagina.")
+
 
 

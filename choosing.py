@@ -112,10 +112,16 @@ class Choosing():
 
             for r in range(len(final_w_meal_user)):
                 if self.border == 'comune': #distinzione è nella ricerca, se match è in un ristorante in provincia o in comune. da capire meglio
-                    cit = final_w_meal_user.iloc[r, 1].split(",")[2].strip().capitalize()
+                    try:
+                        cit = final_w_meal_user.iloc[r, 1].split(",")[2].strip().capitalize()
 
-                    if cit == self.city:
-                        ii_user[(final_w_meal_user.iloc[r, 0], final_w_meal_user.iloc[r, 1])] = list(final_w_meal_user.iloc[r, [5, 7]])
+                        if cit == self.city:
+                            ii_user[(final_w_meal_user.iloc[r, 0], final_w_meal_user.iloc[r, 1])] = list(final_w_meal_user.iloc[r, [5, 7]])
+                    except:
+                        prov = final_w_meal_user.iloc[r, 2].upper()
+
+                        if prov == self.province:
+                            ii_user[(final_w_meal_user.iloc[r, 0], final_w_meal_user.iloc[r, 1])] = list(final_w_meal_user.iloc[r, [5, 7]])
                 else:
                     prov = final_w_meal_user.iloc[r, 2].upper()
 
