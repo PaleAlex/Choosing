@@ -1,7 +1,6 @@
 #imports
 from choosing import *
 from module import *
-from config import *
 import streamlit as st
 from PIL import Image
 from datetime import date, timedelta

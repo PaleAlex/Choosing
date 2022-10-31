@@ -1,4 +1,4 @@
-from config import *
+import config
 from module import *
 import numpy as np
 import requests
@@ -39,7 +39,7 @@ class Choosing():
 
     def random_restaurants(self, radius=3500, keyword='restaurant'):
         if len(self.read_temp()) == 0:
-            api_key = api_key
+            api_key = config.api_key
             possibilities = []
             coordinates = self.coord()
             url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location='+str(coordinates[0])+'%2C'+str(coordinates[1])+'&radius='+str(radius)+'&keyword='+str(keyword)+'&key='+str(api_key)

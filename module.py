@@ -1,7 +1,8 @@
-from config import *
+from config import bucket
 import re
 import pandas as pd
 import io
+import os
 
 def check(s):
     pat = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
