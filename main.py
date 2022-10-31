@@ -339,7 +339,7 @@ else:
                         del st.session_state["geo"]
 
                 else:
-                    raise Exception("...")
+                    raise Exception("Nessun match trovato")
 
             except:
                 try:
@@ -422,5 +422,5 @@ else:
                         st.write("Nessun consiglio per i criteri ricercati.")
 
                 except:
-                    st.write("La ricerca non è andata a buon fine... Verifica che le informazioni nei campi da te inserite siano coerenti, o prova a riaggiornare la pagina.")
+                    st.write("La ricerca non è andata a buon fine... Verifica che le informazioni nei campi da te inserite siano coerenti, o prova a reimpostare la ricerca.")
 
