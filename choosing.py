@@ -1,18 +1,11 @@
-import pandas as pd
+from config import *
+from module import *
 import numpy as np
 import requests
 import json
 from datetime import datetime
 import geocoder
-import config
-import os
-from google.cloud import storage
-import io
 
-PATH = os.path.join(os.getcwd(), 'skilled-bonus-284420-d6d56288fa20.json')
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = PATH
-storage_client = storage.Client(PATH)
-bucket = storage_client.get_bucket('choosing-storage')
 
 class Choosing():
 
@@ -39,19 +32,14 @@ class Choosing():
 
     def read_temp(self):
         try:
-            temp = pd.read_csv(
-                io.BytesIO(
-                    bucket.blob(blob_name = f"user_temps/temp_{self.username}.csv").download_as_bytes()
-                ),
-                index_col = 0, encoding = 'utf-8'
-            )
+            temp = read_usertemp(self.username)
             return temp
         except:
             return pd.DataFrame(columns=["place_id", "name", "lat", "lng", "rating", "n_rating", "vicinity"])
 
     def random_restaurants(self, radius=3500, keyword='restaurant'):
         if len(self.read_temp()) == 0:
-            api_key = config.api_key
+            api_key = api_key
             possibilities = []
             coordinates = self.coord()
             url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location='+str(coordinates[0])+'%2C'+str(coordinates[1])+'&radius='+str(radius)+'&keyword='+str(keyword)+'&key='+str(api_key)
@@ -74,9 +62,7 @@ class Choosing():
             df = pd.DataFrame(data=possibilities, columns=["place_id", "name", "lat", "lng", "rating", "n_rating", "vicinity"])
             df.to_csv(f"user_temps/temp_{self.username}.csv", encoding="utf-8")
             filename = f"user_temps/temp_{self.username}.csv"
-            UPLOADFILE = os.path.join(os.getcwd(),filename)
-            blob = bucket.blob(filename)
-            blob.upload_from_filename(UPLOADFILE)
+            upload(filename)
             return df
         else:
             df = self.read_temp()
@@ -97,12 +83,7 @@ class Choosing():
     def inv_index(self):
         ii = {}
 
-        final = pd.read_csv(
-            io.BytesIO(
-                bucket.blob(blob_name = "final.csv").download_as_bytes()
-            ),
-            index_col = 0, encoding = 'utf-8'
-        ).reset_index(drop= True)
+        final = read_final().reset_index(drop= True)
 
         final_w_meal = final[ (final["what"].isin(self.meal) )]
 

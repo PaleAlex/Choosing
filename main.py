@@ -1,10 +1,10 @@
 #imports
 from choosing import *
+from module import *
+from config import *
 import streamlit as st
 from PIL import Image
-import os
 from datetime import date, timedelta
-import re
 
 
 st.set_page_config(page_title="Choosing: enjoy your best meal",
@@ -20,8 +20,12 @@ st.set_page_config(page_title="Choosing: enjoy your best meal",
                        
                        Nel caso di risultato non derivante da un match con altri utenti, quei due filtri non vengono applicati.
                        Il consiglio infatti prende in considerazione solo le recensioni Google per la posizione ricercata.
+
+                       ##### 2) Perchè non vedo più alcuni ristoranti che avevo nella mia lista ancora da valutare?
                        
-                       
+                       Hai 10 giorni di tempo dal momento in cui scegli un ristorante per lasciare una valutazione.
+                       Dopodiché quel ristorante sarà rimosso dalla lista.
+
                        """
 
                         }
@@ -34,14 +38,7 @@ bucket = bucket
 
 #inputs
 
-st.sidebar.header('User Input')
-
-def check(s):
-    pat = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-    if re.match(pat,s):
-        return s
-    else:
-        return None
+st.sidebar.header(':mag::mag_right:')
 
 username = st.sidebar.text_input('Identificati con una tua mail (non sarà visibile agli altri utenti)', placeholder="e.g. iamcool@coolest.it" ).strip().lower()
 
@@ -122,11 +119,19 @@ elif not check(username): #and username != config.root:
 
 else:
     with st.sidebar:
-        meal = st.multiselect('Cosa vuoi mangiare?', ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), help="Utile solo nel caso di ricerca per similarità con altri utenti")
+        st.markdown(f'''
+        
+        <small>Benvenuto {username}!</small>
+        <small>Utilizza sempre questa mail per accedere al tuo account.</small>
+
+        <small>Inserisci le informazioni geografiche qui sotto per conoscere il miglior ristorante per te</small>
+        ''', unsafe_allow_html=True)
         city = st.text_input('Città', placeholder="e.g. Ferrara", key = "field").capitalize()
         province = st.text_input('Provincia (sigla)', placeholder="e.g. FE", max_chars=2).upper()
         state = st.text_input('Stato', placeholder="e.g. Italia").capitalize()
         border = st.selectbox("Confine di ricerca", ("comune", "provincia"))
+        st.write('*<small>(la modifica dei campi seguenti influenza il consiglio solo se esiste un match con altri utenti)</small>*', unsafe_allow_html=True )
+        meal = st.multiselect('Cosa vuoi mangiare?', ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), help="Utile solo nel caso di ricerca per similarità con altri utenti")
         epp = st.slider("Range spesa per persona", 1, 100, (15, 50), help="Utile solo nel caso di ricerca per similarità con altri utenti")
 
     if "border" not in st.session_state:
@@ -135,27 +140,21 @@ else:
         st.session_state["geo"] = (city, province)
 
     if not meal or not city or not province or not state:
-        st.write("*Per conoscere il tuo prossimo miglior ristorante, compila tutti i campi del menù laterale. Se invece devi ancora valutare un ristorante in cui sei stato, continua prima qui sotto*")
+        st.write("*Per conoscere il tuo prossimo miglior ristorante, compila i campi del menù laterale. Se invece devi ancora valutare un ristorante in cui sei stato, continua prima qui sotto*")
 
         #reviewing
 
         container1 = st.expander("VEDI I RISTORANTI A CUI POTRESTI LASCIARE UNA VALUTAZIONE")
         with container1:
-            def user_to_review():
-                data = pd.read_csv(
-                    io.BytesIO(
-                        bucket.blob(blob_name = "suggests.csv").download_as_bytes()
-                    ),
-                    index_col = 0, encoding = 'utf-8'
-                )
-                return data[data["user"] == username].drop_duplicates(keep= 'last').reset_index(drop= True)
-            if len(user_to_review()) > 0:
-                to_be_reviewed = user_to_review()
-                st.dataframe(data=to_be_reviewed.iloc[:, :-1])
+            user_to_review = read_suggests()
+            user_to_review = user_to_review[user_to_review["user"] == username].drop_duplicates(keep= 'last').reset_index(drop= True)
+
+            if len(user_to_review) > 0:
+                st.dataframe(data=user_to_review.iloc[:, :-1])
 
                 with st.form(key="review"):
-                    selected = st.selectbox("Selezionane uno dalla lista", set(to_be_reviewed["name"]))
-                    reviewed = to_be_reviewed[to_be_reviewed["name"] == selected].reset_index(drop = True)
+                    selected = st.selectbox("Selezionane uno dalla lista", set(user_to_review["name"]))
+                    reviewed = user_to_review[user_to_review["name"] == selected].reset_index(drop = True)
 
                     NUMBER_OF_COLUMNS = 3
                     f, s, t = st.columns(NUMBER_OF_COLUMNS)
@@ -175,30 +174,16 @@ else:
                     reviewed["what"] = reviewed_meal.capitalize()
                     reviewed["epp"] = reviewed_epp
 
-                    final = pd.read_csv(
-                        io.BytesIO(
-                            bucket.blob(blob_name = "final.csv").download_as_bytes()
-                        ),
-                        index_col = 0, encoding = 'utf-8'
-                    )
-
-                    #with open(final, 'a', encoding='utf-8') as f:
-                        #reviewed.to_csv(f, mode='a', header=f.tell()==0)
+                    final = read_final()
+                    
                     final = pd.concat([final, reviewed], axis=0, ignore_index=True)
                     final.to_csv("final.csv")
                     filename = "final.csv"
-                    UPLOADFILE = os.path.join(os.getcwd(),filename)
-                    blob = bucket.blob(filename)
-                    blob.upload_from_filename(UPLOADFILE)
+
+                    upload(filename)
 
                     tendaysago = date.today() - timedelta(10)
-
-                    suggests = pd.read_csv(
-                        io.BytesIO(
-                            bucket.blob(blob_name = "suggests.csv").download_as_bytes()
-                        ),
-                        index_col=0, encoding = 'utf-8'
-                    ).reset_index(drop=True)
+                    suggests = read_suggests().reset_index(drop=True)
 
                     suggests["added"] = pd.to_datetime(suggests["added"], format='%Y-%m-%d').dt.date
 
@@ -209,23 +194,13 @@ else:
                     suggests = suggests[suggests["added"] > tendaysago].reset_index(drop=True)
                     suggests.to_csv("suggests.csv")
                     filename = "suggests.csv"
-                    UPLOADFILE = os.path.join(os.getcwd(),filename)
-                    blob = bucket.blob(filename)
-                    blob.upload_from_filename(UPLOADFILE)
+                    upload(filename)
 
-                    final = pd.read_csv(
-                        io.BytesIO(
-                            bucket.blob(blob_name = "final.csv").download_as_bytes()
-                        ),
-                        index_col = 0, encoding = 'utf-8'
-                    ).drop_duplicates(subset=["name", "user", "what"], keep = 'last').reset_index(drop=True)
+                    final = read_final().drop_duplicates(subset=["name", "user", "what"], keep = 'last').reset_index(drop=True)
 
                     final.to_csv("final.csv")
                     filename = "final.csv"
-                    UPLOADFILE = os.path.join(os.getcwd(),filename)
-                    blob = bucket.blob(filename)
-                    blob.upload_from_filename(UPLOADFILE)
-
+                    upload(filename)
                     st.experimental_rerun()
 
             else:
@@ -233,18 +208,11 @@ else:
 
         container2 = st.expander("VEDI I RISTORANTI A CUI HAI LASCIATO UNA VALUTAZIONE")
         with container2:
-            def user_reviewed():
-                data = pd.read_csv(
-                    io.BytesIO(
-                        bucket.blob(blob_name = "final.csv").download_as_bytes()
-                    ),
-                    index_col = 0, encoding = 'utf-8'
-                )
-                return data[data["user"] == username].drop_duplicates(keep= 'last').reset_index(drop= True)
+            user_reviewed = read_final()
+            user_reviewed = user_reviewed[user_reviewed["user"] == username].drop_duplicates(keep= 'last').reset_index(drop= True)
 
-            if len(user_reviewed()) > 0:
-                to_be_reviewed = user_reviewed()
-                st.dataframe(data=to_be_reviewed.iloc[:, [0,1,3,5,6,7]])
+            if len(user_reviewed) > 0:
+                st.dataframe(data=user_reviewed.iloc[:, [0,1,3,5,6,7]])
             else:
                 st.write("Non hai ancora lasciato nessuna valutazione.")
     else:
@@ -256,9 +224,7 @@ else:
                 .to_csv(f"user_temps/temp_{username}.csv", encoding='utf-8')
             )
             filename = f"user_temps/temp_{username}.csv"
-            UPLOADFILE = os.path.join(os.getcwd(),filename)
-            blob = bucket.blob(filename)
-            blob.upload_from_filename(UPLOADFILE)
+            upload(filename)
 
             st.session_state["border"] = border
             st.session_state["geo"] = (city, province)
@@ -298,7 +264,7 @@ else:
                                 """
                 return html_str, chose
 
-            #---------------------------------------------------------------
+            #--------------------------------------------------------------------
 
             try:
                 alt = len(ch.matched_suggests())
@@ -314,29 +280,19 @@ else:
                         st.balloons()
                         st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
 
-                        suggests = pd.read_csv(
-                            io.BytesIO(
-                                bucket.blob(blob_name = "suggests.csv").download_as_bytes()
-                            ),
-                            index_col=0, encoding = 'utf-8'
-                        )
-                        #with open(suggests, 'a', encoding='utf-8') as f:
-                        #    chose.to_csv(f, mode='a', header=f.tell() == 0, encoding='utf-8')
+                        suggests = read_suggests()
+
                         suggests = pd.concat([suggests, chose], axis = 0, ignore_index=True)
                         suggests.to_csv("suggests.csv")
                         filename = "suggests.csv"
-                        UPLOADFILE = os.path.join(os.getcwd(),filename)
-                        blob = bucket.blob(filename)
-                        blob.upload_from_filename(UPLOADFILE)
+                        upload(filename)
 
                         df = (
                             ch.read_temp()[0:0]
                             .to_csv(f"user_temps/temp_{username}.csv", encoding='utf-8')
                         )
                         filename = f"user_temps/temp_{username}.csv"
-                        UPLOADFILE = os.path.join(os.getcwd(),filename)
-                        blob = bucket.blob(filename)
-                        blob.upload_from_filename(UPLOADFILE)
+                        upload(filename)
 
                         del st.session_state["border"]
                         del st.session_state["geo"]
@@ -364,30 +320,21 @@ else:
                         st.balloons()
                         st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
 
-                        suggests = pd.read_csv(
-                            io.BytesIO(
-                                bucket.blob(blob_name = "suggests.csv").download_as_bytes()
-                            ),
-                            index_col=0, encoding = 'utf-8'
-                        )
+                        suggests = read_suggests()
 
-                        #with open(suggests, 'a', encoding='utf-8') as f:
-                        #    chose.to_csv(f, mode='a', header=f.tell() == 0, encoding='utf-8')
                         suggests = pd.concat([suggests, chose], axis=0, ignore_index=True)
                         suggests.to_csv("suggests.csv")
                         filename = "suggests.csv"
-                        UPLOADFILE = os.path.join(os.getcwd(),filename)
-                        blob = bucket.blob(filename)
-                        blob.upload_from_filename(UPLOADFILE)
+
+                        upload(filename)
 
                         df = (
                             ch.read_temp()[0:0]
                             .to_csv(f"user_temps/temp_{username}.csv", encoding='utf-8')
                         )
                         filename = f"user_temps/temp_{username}.csv"
-                        UPLOADFILE = os.path.join(os.getcwd(),filename)
-                        blob = bucket.blob(filename)
-                        blob.upload_from_filename(UPLOADFILE)
+
+                        upload(filename)
 
                         del st.session_state["border"]
                         del st.session_state["geo"]
@@ -411,30 +358,22 @@ else:
                         if submit:
                             st.balloons()
                             st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
-                            suggests = pd.read_csv(
-                                io.BytesIO(
-                                    bucket.blob(blob_name = "suggests.csv").download_as_bytes()
-                                ),
-                                index_col=0, encoding = 'utf-8'
-                            )
 
-                            #with open(suggests, 'a', encoding='utf-8') as f:
-                            #    chose.to_csv(f, mode='a', header=f.tell() == 0, encoding='utf-8')
+                            suggests = read_suggests()
+
                             suggests = pd.concat([suggests, chose], axis=0, ignore_index=True)
                             suggests.to_csv("suggests.csv")
                             filename = "suggests.csv"
-                            UPLOADFILE = os.path.join(os.getcwd(),filename)
-                            blob = bucket.blob(filename)
-                            blob.upload_from_filename(UPLOADFILE)
+
+                            upload(filename)
 
                             df = (
                                 ch.read_temp()[0:0]
                                 .to_csv(f"user_temps/temp_{username}.csv", encoding='utf-8')
                             )
                             filename = f"user_temps/temp_{username}.csv"
-                            UPLOADFILE = os.path.join(os.getcwd(),filename)
-                            blob = bucket.blob(filename)
-                            blob.upload_from_filename(UPLOADFILE)
+
+                            upload(filename)
 
                             del st.session_state["border"]
                             del st.session_state["geo"]
@@ -461,31 +400,21 @@ else:
                             st.balloons()
                             st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
 
-                            suggests = pd.read_csv(
-                                io.BytesIO(
-                                    bucket.blob(blob_name = "suggests.csv").download_as_bytes()
-                                ),
-                                index_col=0, encoding = 'utf-8'
-                            )
+                            suggests = read_suggests()
 
-                            #with open(suggests, 'a', encoding='utf-8') as f:
-                            #    chose.to_csv(f, mode='a', header=f.tell() == 0, encoding='utf-8')
                             suggests = pd.concat([suggests, chose], axis=0, ignore_index=True)
                             suggests.to_csv("suggests.csv")
 
                             filename = "suggests.csv"
-                            UPLOADFILE = os.path.join(os.getcwd(),filename)
-                            blob = bucket.blob(filename)
-                            blob.upload_from_filename(UPLOADFILE)
+                            upload(filename)
 
                             df = (
                                 ch.read_temp()[0:0]
                                 .to_csv(f"user_temps/temp_{username}.csv", encoding='utf-8')
                             )
                             filename = f"user_temps/temp_{username}.csv"
-                            UPLOADFILE = os.path.join(os.getcwd(),filename)
-                            blob = bucket.blob(filename)
-                            blob.upload_from_filename(UPLOADFILE)
+
+                            upload(filename)
 
                             del st.session_state["border"]
                             del st.session_state["geo"]
@@ -495,6 +424,4 @@ else:
 
                 except:
                     st.write("La ricerca non è andata a buon fine... Verifica che le informazioni nei campi da te inserite siano coerenti, o prova a riaggiornare la pagina.")
-
-
 
