@@ -54,7 +54,7 @@ finire a mangiare nella solita osteria.
 
 Dedica il tuo tempo alle cose migliori. A sceglierle ci pensa Choosing.
 
-Enjoy your perfect meal.
+Enjoy your best meal.
 
 
 ## Come funziona?
@@ -67,7 +67,7 @@ Choosing usa due strategie alternative:
 
 Il consiglio che deriva da 1. è molto più personalizzato rispetto a quello di 2. ed è il vero orgoglio di Choosing. L'unica condizione affinché si verifichi è la partecipazione attiva di tanti utenti e il passaparola, se credi nei superpoteri di Choosing.
 
-Per cominciare, identificati con una mail nel menù a sinistra e buon appetito :)
+**Per cominciare, identificati con una mail nel menù a sinistra e buon appetito :)**
 
 
 ## Feedback
@@ -127,18 +127,23 @@ else:
         ''', unsafe_allow_html=True)
         city = st.text_input('Città', placeholder="e.g. Ferrara", key = "field").capitalize()
         province = st.text_input('Provincia (sigla)', placeholder="e.g. FE", max_chars=2).upper()
-        state = st.text_input('Stato', placeholder="e.g. Italia").capitalize()
+        state = "Italia" #st.text_input('Stato', placeholder="e.g. Italia").capitalize()
         border = st.selectbox("Confine di ricerca", ("comune", "provincia"))
+        if st.button('Aggiorna', key = 'aggiorna1'):
+            st.experimental_rerun()
         st.write('*<small>(la modifica dei campi seguenti influenza il consiglio solo se esiste un match con altri utenti)</small>*', unsafe_allow_html=True )
         meal = st.multiselect('Cosa vuoi mangiare?', ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), help="Utile solo nel caso di ricerca per similarità con altri utenti")
         epp = st.slider("Range spesa per persona", 1, 100, (15, 50), help="Utile solo nel caso di ricerca per similarità con altri utenti")
-
+        if st.button('Aggiorna', key = 'aggiorna2'):
+            st.experimental_rerun()
+        st.write("  ")
+            
     if "border" not in st.session_state:
         st.session_state["border"] = border
     if "geo" not in st.session_state:
         st.session_state["geo"] = (city, province)
 
-    if not meal or not city or not province or not state:
+    if not meal or not city or not province: #or not state
         st.write("*Per conoscere il tuo prossimo miglior ristorante, compila i campi del menù laterale. Se invece devi ancora valutare un ristorante in cui sei stato, continua prima qui sotto*")
 
         #reviewing
@@ -343,7 +348,12 @@ else:
 
             except:
                 try:
-                    alt = len(ch.random_restaurants())
+                    if border == 'provincia':
+                        alt = 0
+                        while alt == 0:
+                            alt = len(ch.random_restaurants())
+                    else:
+                        alt = len(ch.random_restaurants())
 
                     if alt == 1:
                         n_rist = 0
@@ -420,7 +430,11 @@ else:
 
                     if alt == 0:
                         st.write("Nessun consiglio per i criteri ricercati.")
+                        del st.session_state["border"]
+                        del st.session_state["geo"]
 
                 except:
                     st.write("La ricerca non è andata a buon fine... Verifica che le informazioni nei campi da te inserite siano coerenti, o prova a reimpostare la ricerca.")
-
+                    del st.session_state["border"]
+                    del st.session_state["geo"]
+                    st.experimental_rerun()
