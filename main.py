@@ -430,11 +430,6 @@ else:
 
                     if alt == 0:
                         st.write("Nessun consiglio per i criteri ricercati.")
-                        del st.session_state["border"]
-                        del st.session_state["geo"]
 
                 except:
                     st.write("La ricerca non è andata a buon fine... Verifica che le informazioni nei campi da te inserite siano coerenti, o prova a reimpostare la ricerca.")
-                    del st.session_state["border"]
-                    del st.session_state["geo"]
-                    st.experimental_rerun()
