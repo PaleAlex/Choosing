@@ -222,7 +222,7 @@ else:
     else:
         #choosing object
         ch = Choosing(username, meal, city, province, state, epp, border)
-        if border != st.session_state["border"] or (city, province) != st.session_state["geo"]:
+        if border != st.session_state["border"] or (city != st.session_state["geo"][0] and province != st.session_state["geo"][1]):
             df = (
                 ch.read_temp()[0:0]
                 .to_csv(f"user_temps/temp_{username}.csv", encoding='utf-8')
