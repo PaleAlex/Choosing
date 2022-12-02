@@ -45,6 +45,10 @@ if not username:
     st.markdown("""
 <div style = "text-align: justify;">
 
+
+**Per cominciare, identificati con una mail nel menù a sinistra e buon appetito :)**
+
+
 # Cos'è Choosing?
 
 La sua missione unica e imprescindibile è quella di generare un consiglio personalizzato per il tuo prossimo ristorante.
@@ -67,7 +71,6 @@ Choosing usa due strategie alternative:
 
 Il consiglio che deriva da 1. è molto più personalizzato rispetto a quello di 2. ed è il vero orgoglio di Choosing. L'unica condizione affinché si verifichi è la partecipazione attiva di tanti utenti e il passaparola, se credi nei superpoteri di Choosing.
 
-**Per cominciare, identificati con una mail nel menù a sinistra e buon appetito :)**
 
 
 ## Feedback
@@ -129,6 +132,10 @@ else:
         province = st.text_input('Provincia (sigla)', placeholder="e.g. FE", max_chars=2).upper()
         state = "Italia" #st.text_input('Stato', placeholder="e.g. Italia").capitalize()
         border = st.selectbox("Confine di ricerca", ("comune", "provincia"))
+        if "border" not in st.session_state:
+            st.session_state["border"] = border
+        if "geo" not in st.session_state:
+            st.session_state["geo"] = (city, province)
         if st.button('Aggiorna', key = 'aggiorna1'):
             st.experimental_rerun()
         st.write('*<small>(la modifica dei campi seguenti influenza il consiglio solo se esiste un match con altri utenti)</small>*', unsafe_allow_html=True )
@@ -138,10 +145,6 @@ else:
             st.experimental_rerun()
         st.write("  ")
             
-    if "border" not in st.session_state:
-        st.session_state["border"] = border
-    if "geo" not in st.session_state:
-        st.session_state["geo"] = (city, province)
 
     if not meal or not city or not province: #or not state
         st.write("*Per conoscere il tuo prossimo miglior ristorante, compila i campi del menù laterale. Se invece devi ancora valutare un ristorante in cui sei stato, continua prima qui sotto*")
