@@ -141,8 +141,8 @@ else:
         st.write('*<small>(la modifica dei campi seguenti influenza il consiglio solo se esiste un match con altri utenti)</small>*', unsafe_allow_html=True )
         meal = st.multiselect('Cosa vuoi mangiare?', ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), help="Utile solo nel caso di ricerca per similarità con altri utenti")
         epp = st.slider("Range spesa per persona", 1, 100, (15, 50), help="Utile solo nel caso di ricerca per similarità con altri utenti")
-        if st.button('Aggiorna', key = 'aggiorna2'):
-            st.experimental_rerun()
+        #if st.button('Aggiorna', key = 'aggiorna2'):
+        #    st.experimental_rerun()
         st.write("  ")
             
 
