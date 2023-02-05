@@ -29,6 +29,11 @@ st.set_page_config(page_title="Choosing: enjoy your best meal",
                        Hai 10 giorni di tempo dal momento in cui scegli un ristorante per lasciare una valutazione.
                        Dopodiché quel ristorante sarà rimosso dalla lista.
 
+                       ##### 3) Come faccio a modificare una valutazione a un ristorante nella mia lista?
+
+                       Al momento, non è possibile eliminare una valutazione. Tuttavia, è possibile sovrascriverla. Choosing salva
+                       la valutazione più recente per ristorante-tipo di pasto e scarta quella precedente
+
                        """
 
                         }
@@ -130,22 +135,29 @@ else:
 
         <small>Inserisci le informazioni geografiche qui sotto per conoscere il miglior ristorante per te</small>
         ''', unsafe_allow_html=True)
+        
         with st.form(key='search'):
             city = st.text_input('Città', placeholder="e.g. Ferrara", key = "field").capitalize()
             province = st.text_input('Provincia (sigla)', placeholder="e.g. FE", max_chars=2).upper()
             state = "Italia" #st.text_input('Stato', placeholder="e.g. Italia").capitalize()
             border = st.selectbox("Confine di ricerca", ("comune", "provincia"))
-            submitted = st.form_submit_button("Aggiorna")
-            st.write('*<small>(la modifica dei campi seguenti influenza il consiglio solo se esiste un match con altri utenti)</small>*', unsafe_allow_html=True )
-            meal = st.multiselect('Cosa vuoi mangiare?', ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), help="Utile solo nel caso di ricerca per similarità con altri utenti")
-            epp = st.slider("Range spesa per persona", 1, 100, (15, 50), help="Utile solo nel caso di ricerca per similarità con altri utenti")
-            st.write("  ")
+            c1,c2,c3 = st.columns(3)
+            with c2:
+                st.write(" ")
+                submitted = st.form_submit_button("Cerca :mag:", type = 'primary')
+                st.write("* * * ")
+            st.write('*<small>(la modifica dei campi seguenti influenza il consiglio solo se esistono match con altri utenti)</small>*', unsafe_allow_html=True )
+            meal = st.multiselect('*Cosa vuoi mangiare?*', ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), help="Utile solo nel caso di match con altri utenti")
+            epp = st.slider("*Range spesa per persona*", 1, 100, (15, 50), help="Utile solo nel caso di match con altri utenti")
+        st.write("\n")
+        back = st.button("Torna nella tua homepage")
+        st.write("\n")
         if submitted:
             st.session_state['sidebar_state']  = 'collapsed' if st.session_state['sidebar_state']  == 'expanded' else 'expanded'
             st.experimental_rerun()
 
 
-    if not meal or not city or not province:
+    if not meal or not city or not province or back:
         st.write("*Per conoscere il tuo prossimo miglior ristorante, compila i campi del menù laterale. Se invece devi ancora valutare un ristorante in cui sei stato, continua prima qui sotto*")
 
         #reviewing
@@ -228,7 +240,7 @@ else:
 
         #suggests
 
-        container = st.expander("TI SVELO IL TUO PROSSIMO MIGLIOR RISTORANTE")
+        container = st.expander("TI SVELO IL TUO PROSSIMO MIGLIOR RISTORANTE", expanded=True)
         with container:
             #---------------------------------------------------------------------
             def markdown_and_save(n_rist, type_of_choice):
