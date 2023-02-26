@@ -9,6 +9,9 @@ from datetime import date, timedelta
 if 'sidebar_state' not in st.session_state:
     st.session_state['sidebar_state'] = 'expanded'
 
+if 'search_submission' not in st.session_state:
+    st.session_state['search_submission'] = False
+
 st.set_page_config(page_title="Choosing: enjoy your best meal",
                    page_icon="🔍",
                    layout="wide",
@@ -143,19 +146,21 @@ else:
             border = st.selectbox("Confine di ricerca", ("comune", "provincia"))
             c1,c2,c3 = st.columns(3)
             with c2:
-                st.write(" ")
-                submitted = st.form_submit_button("Cerca :mag:", type = 'primary')
+                st.write("")
+                search_submission = st.form_submit_button("Cerca :mag:", type = 'primary')
                 st.write("* * * ")
             st.write('*<small>(la modifica dei campi seguenti influenza il consiglio solo se esistono match con altri utenti)</small>*', unsafe_allow_html=True )
             meal = st.multiselect('*Cosa vuoi mangiare?*', ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), ("Primi piatti", "Pizza", "Street food", "Carne", "Pesce", "Vegetariano/Vegano", "Etnico", "Orientale", "Altro"), help="Utile solo nel caso di match con altri utenti")
             epp = st.slider("*Range spesa per persona*", 1, 100, (15, 50), help="Utile solo nel caso di match con altri utenti")
+                
         st.write("\n")
         back = st.button("Torna nella tua homepage")
         st.write("\n")
-        if submitted:
-            st.session_state['sidebar_state']  = 'collapsed' if st.session_state['sidebar_state']  == 'expanded' else 'expanded'
-            st.experimental_rerun()
 
+        if search_submission:
+            st.session_state['sidebar_state']  = 'collapsed' if st.session_state['sidebar_state']  == 'expanded' else 'expanded'
+            st.session_state['search_submission'] = True
+            st.experimental_rerun()
 
     if not meal or not city or not province or back:
         st.write("*Per conoscere il tuo prossimo miglior ristorante, compila i campi del menù laterale. Se invece devi ancora valutare un ristorante in cui sei stato, continua prima qui sotto*")
@@ -182,7 +187,7 @@ else:
                         reviewed_epp = st.slider('Spesa per persona (circa)', 1, 100, 25)
                     with t:
                         reviewed_rate = st.slider('Valutazione complessiva', 1.0, 10.0, 8.0, 0.1)
-                    ok = st.form_submit_button("Invia!")
+                    ok = st.form_submit_button("Salva!")
 
                 if ok:
                     st.balloons()
@@ -213,7 +218,6 @@ else:
                     suggests.to_csv("suggests.csv")
                     filename = "suggests.csv"
                     upload(filename)
-
                     st.experimental_rerun()
 
             else:
@@ -231,12 +235,14 @@ else:
     else:
         #choosing object
         ch = Choosing(username, meal, city, province, state, epp, border)
-        df = (
-            ch.read_temp()[0:0]
-            .to_csv(f"user_temps/temp_{username}.csv", encoding='utf-8')
-        )
-        filename = f"user_temps/temp_{username}.csv"
-        upload(filename)
+        if st.session_state['search_submission'] == True:
+            df = (
+                ch.read_temp()[0:0]
+                .to_csv(f"user_temps/temp_{username}.csv", encoding='utf-8')
+            )
+            filename = f"user_temps/temp_{username}.csv"
+            upload(filename)
+            st.session_state['search_submission'] = False
 
         #suggests
 
@@ -281,11 +287,12 @@ else:
                     n_rist = 0
                     html, chose = markdown_and_save(n_rist, type_of_choice="matched")
                     st.markdown(html, unsafe_allow_html=True)
-                    form = st.form(key="case1", clear_on_submit = True)
-                    with form:
-                        ok = st.checkbox("Ok, scelgo questo!")
-                    submit = form.form_submit_button("Salva")
-                    if submit:
+                    #form = st.form(key="case1", clear_on_submit = True)
+                    #with form:
+                    #    ok = st.checkbox("Ok, scelgo questo!")
+                    #submit = form.form_submit_button("Salva")
+                    saving = st.button("Ok, scelgo questo!")
+                    if saving:
                         st.balloons()
                         st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
 
@@ -302,6 +309,7 @@ else:
                         )
                         filename = f"user_temps/temp_{username}.csv"
                         upload(filename)
+                        del st.session_state['search_submission']
 
                 elif alt > 1:
                     already = st.checkbox("Ci sono già stato, dimmene un altro")
@@ -318,11 +326,12 @@ else:
                     html, chose = markdown_and_save(n_rist, type_of_choice="matched")
 
                     st.markdown(html, unsafe_allow_html=True)
-                    form = st.form(key="case2", clear_on_submit = True)
-                    with form:
-                        ok = st.checkbox("Ok, scelgo questo!")
-                    submit = form.form_submit_button("Salva")
-                    if submit:
+                    #form = st.form(key="case2", clear_on_submit = True)
+                    #with form:
+                    #    ok = st.checkbox("Ok, scelgo questo!")
+                    #submit = form.form_submit_button("Salva")
+                    saving = st.button("Ok, scelgo questo!")
+                    if saving:
                         st.balloons()
                         st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
 
@@ -341,6 +350,7 @@ else:
                         filename = f"user_temps/temp_{username}.csv"
 
                         upload(filename)
+                        del st.session_state['search_submission']
 
                 else:
                     raise Exception("Nessun match trovato")
@@ -359,11 +369,12 @@ else:
                         html, chose = markdown_and_save(n_rist, type_of_choice="random")
                         st.markdown(html, unsafe_allow_html=True)
 
-                        form = st.form(key="case3", clear_on_submit = True)
-                        with form:
-                            ok = st.checkbox("Ok, scelgo questo!")
-                        submit = form.form_submit_button("Salva")
-                        if submit:
+                        #form = st.form(key="case3", clear_on_submit = True)
+                        #with form:
+                        #    ok = st.checkbox("Ok, scelgo questo!")
+                        #submit = form.form_submit_button("Salva")
+                        saving = st.button("Ok, scelgo questo!")
+                        if saving:
                             st.balloons()
                             st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
 
@@ -382,6 +393,7 @@ else:
                             filename = f"user_temps/temp_{username}.csv"
 
                             upload(filename)
+                            del st.session_state['search_submission']
 
 
                     elif alt > 1:
@@ -398,11 +410,12 @@ else:
                         html, chose = markdown_and_save(n_rist, type_of_choice="random")
                         st.markdown(html, unsafe_allow_html=True)
 
-                        form = st.form(key="case4", clear_on_submit = True)
-                        with form:
-                            ok = st.checkbox("Ok, scelgo questo!")
-                        submit = form.form_submit_button("Salva")
-                        if submit:
+                        #form = st.form(key="case4", clear_on_submit = True)
+                        #with form:
+                        #    ok = st.checkbox("Ok, scelgo questo!")
+                        #submit = form.form_submit_button("Salva")
+                        saving = st.button("Ok, scelgo questo!")
+                        if saving:
                             st.balloons()
                             st.success("Ristorante registrato a tuo nome. Ottima scelta e buon appetito! Ricordati poi di tornare qua a dargli un voto", icon = "✅")
 
@@ -421,6 +434,7 @@ else:
                             filename = f"user_temps/temp_{username}.csv"
 
                             upload(filename)
+                            del st.session_state['search_submission']
 
                     if alt == 0:
                         st.write("Nessun consiglio per i criteri ricercati.")
