@@ -2,7 +2,7 @@ geocoder==1.38.1
 numpy==1.23.3
 pandas==1.5.3
 Pillow==9.4.0
-requests==2.28.1
+requests==2.31.0
 streamlit==1.21.0
 google-cloud-storage==2.5.0
 google-api-python-client==2.64.0
