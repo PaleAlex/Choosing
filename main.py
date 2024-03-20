@@ -204,4 +204,47 @@ if search_button:
         
 
     st.markdown(all_cards_html, unsafe_allow_html=True)
-        
+
+
+
+
+
+
+#FOOTER
+footer="""
+<style>
+    .footer {
+    position: fixed;
+    left: 25%;
+    bottom: 5px;
+    width: 50%;
+    text-align: center;
+    background-color: white;
+    border-radius: 10px;
+    padding: 10px;
+    }
+    @media (max-width: 1000px) {
+        .to_hide {
+            display: none; /* Hide the footer on screens smaller than 768px (typical mobile devices) */
+        }
+    }
+
+    a {
+    margin-right: 15px;
+
+    img {
+        max-width: 100%;
+        height: auto;
+     }
+    
+</style>
+
+<div class="footer">
+    <small>
+    <a href="https://www.linkedin.com/in/ac-palealex/", target="_blank", class="to_hide"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)"/></a>
+    <a href="https://www.buymeacoffee.com/palealex", target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png"/></a>
+    <img src="https://www.cutercounter.com/hits.php?id=hexpapxk&nd=4&style=66" border="0" alt="user counter"/>users
+    </small>
+</div>
+"""
+st.markdown(footer,unsafe_allow_html=True)

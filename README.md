@@ -33,5 +33,5 @@ If you believe Choosing is a great and useful idea, you can support it with a sm
 
 ## Author
 
-- [!["Alessandro Ciocchetti"](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/ac-palealex/)
+[!["Alessandro Ciocchetti"](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/ac-palealex/)
 
