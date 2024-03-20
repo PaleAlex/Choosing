@@ -41,8 +41,8 @@ class Choosing():
                 continue
             elif any(word in name for word in ('Donald', 'Roadhouse', 'Burger King', 'Piadineria', 'Salumeria')):
                 continue
-            elif self.keyword == 'restaurant' and 'Pizzeria' in name:
-                continue
+            #elif self.keyword == 'restaurant' and 'Caffè' in name:
+            #    continue
             
             data = [place_id, name, lat, lng, rating, n_rating, price_level, vicinity, score]
             possibilities.append(data)

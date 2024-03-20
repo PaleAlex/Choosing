@@ -137,7 +137,8 @@ with map_container:
 
     current_position_label = "📍 Cerca vicino a te" if st.query_params['lang']=='it' else '📍 Find near to you'
     
-    if st.button(current_position_label, on_click=clear_text_input):
+    current_position_status = False if myfunc.get_current_gps_coordinates()[1]!=address else True
+    if st.button(current_position_label, on_click=clear_text_input, disabled=current_position_status):
         st.session_state['latlon'] = myfunc.get_current_gps_coordinates()[0]
         st.session_state['address'] = 'current'
 
