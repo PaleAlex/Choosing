@@ -71,7 +71,7 @@ col1, col2, col3 = st.columns([9,1.5,1.5])
 
 with col1:
     image = Image.open('logo.png')
-    st.image(image, width=450)
+    st.image(image, use_column_width=True)
 
 with col2:
     keywords = {"🍴": "restaurant", "🍺": "pub", "🍕": "pizzeria"}
@@ -152,7 +152,7 @@ with map_container:
 
             with colcol2:
                 radius_label = "**Raggio [km]**" if st.query_params['lang']=='it' else "**Radius [km]**"
-                radius = st.number_input(radius_label, min_value=0.5, step=0.5, key='radius_input')
+                radius = st.number_input(radius_label, min_value=0.5, step=0.5, key='radius_input')*1000
 
                 specific_request_label = "Opzionale: descrivimi cosa ti piacerebbe mangiare! 😉 (*Powered by LLM*)" \
                                             if st.query_params['lang']=='it' else \
@@ -173,7 +173,7 @@ with map_container:
                 search_button = st.button(f"{search_button_label} {[k for k, v in keywords.items() if v == st.query_params['keyword']][0]}")
             
             with colcol1:
-                st.map(st.session_state['latlon'], zoom = 13, size=radius*1000) 
+                st.map(st.session_state['latlon'], zoom = 13, size=radius) 
 
         except TypeError:
             address_error = "C'è qualcosa che non va nell'indirizzo che hai scritto. Prova a correggerlo facendo riferimento allo standard di Google Maps" \
