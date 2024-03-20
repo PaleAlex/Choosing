@@ -114,7 +114,8 @@ with col3:
         )
 
 
-map_container = st.container(border=True)
+expander_label = "Dove vuoi cercare?" if st.query_params['lang']=='it' else 'Where do you want to search?'
+map_expander = st.expander(label=expander_label, expanded=True)
 search_button = False
 
 if 'address' not in st.session_state:
@@ -122,16 +123,16 @@ if 'address' not in st.session_state:
 if 'latlon' not in st.session_state:
     st.session_state['latlon'] = None
 
-with map_container:
+with map_expander:
     def clear_text_input():
         st.session_state['text_input'] = myfunc.get_current_gps_coordinates()[1]
     
-    address_textinput_label = "Dove vuoi cercare?" if st.query_params['lang']=='it' else 'Where do you want to search?'
+
     addresstextinput_placeholder = '🔍 Digita un indirizzo o un punto di riferimento (e.g. Piazza del Colosseo, Roma)' \
                                      if st.query_params['lang']=='it' else \
                                      "🔍 Write an address or a landmark (e.g. Colosseum, Rome)"
     
-    address = st.text_input(f'**{address_textinput_label}**', key='text_input', help=None, placeholder=addresstextinput_placeholder)
+    address = st.text_input(label='Cosa vuoi cercare', key='text_input', help=None, placeholder=addresstextinput_placeholder, label_visibility='collapsed')
     markdown_label = "oppure" if st.query_params['lang']=='it' else "otherwise"
     st.markdown(f"""<small>{markdown_label}</small>""", unsafe_allow_html=True)
 
@@ -244,8 +245,9 @@ footer="""
     <small>
     <a href="https://www.linkedin.com/in/ac-palealex/", target="_blank", class="to_hide"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)"/></a>
     <a href="https://www.buymeacoffee.com/palealex", target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png"/></a>
-    <img src="https://www.cutercounter.com/hits.php?id=hexpapxk&nd=4&style=66" border="0" alt="user counter"/>users
+    <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fchoosing.club%2F&label=Users&labelColor=%23ff8a65&countColor=%23d9e3f0" />
     </small>
 </div>
 """
 st.markdown(footer,unsafe_allow_html=True)
+
