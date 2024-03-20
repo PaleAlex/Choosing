@@ -195,7 +195,7 @@ if search_button:
         with st.spinner(spinner_label):
             recommandations_placeids = ch.formatted_df_to_dict.keys()
             if len(recommandations_placeids)<7:
-                warning_label = "Non sono stato bravo a trovare molti suggerimenti. Prova a modificare l'indirizzo e a riavviare la ricerca" \
+                warning_label = "Non sono stato bravo a trovare molti suggerimenti. Prova a modificare l'indirizzo e cerca di nuovo" \
                                 if st.query_params['lang']=='it' else \
                                 "I couldn't give you enough recommandations. Try to change the address and search again"
                 st.warning(warning_label, icon='😖')
