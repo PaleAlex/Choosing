@@ -1,45 +1,83 @@
-from config import bucket
-import re
+import numpy as np
 import pandas as pd
-import io
-import os
+from groq import Groq
+import geocoder
 
-def check(s):
-    regex = re.compile(r"([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\"([]!#-[^-~ \t]|(\\[\t -~]))+\")@([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\[[\t -Z^-~]*])")
-    if re.fullmatch(regex,s):
-        return s
-    else:
-        return None
+def get_coordinates(address: str) -> pd.DataFrame:
+    g = geocoder.osm(address)
+    lat = g.latlng[0]
+    long = g.latlng[1]
+    latlon = pd.DataFrame({
+        "lat": [lat],
+        "lon": [long]
+    })
+    return latlon
 
-def read_suggests():
-    data = pd.read_csv(
-                    io.BytesIO(
-                        bucket.blob(blob_name = "suggests.csv").download_as_bytes()
-                    ),
-                    index_col = 0, encoding = 'utf-8'
-                )
-    return data
+def get_current_gps_coordinates():
+    g = geocoder.ip('me') #this function is used to find the current information using IPAdd
+    address = g.address
 
-def read_final():
-    data = pd.read_csv(
-                        io.BytesIO(
-                            bucket.blob(blob_name = "final.csv").download_as_bytes()
-                        ),
-                        index_col = 0, encoding = 'utf-8'
-                    )
-    return data
+    g = geocoder.osm(address)
+    lat = g.latlng[0]
+    long = g.latlng[1]
+    latlon = pd.DataFrame({
+        "lat": [lat],
+        "lon": [long]
+    })
+    return latlon, address
 
-def read_usertemp(username):
-    data = pd.read_csv(
-                io.BytesIO(
-                    bucket.blob(blob_name = f"user_temps/temp_{username}.csv").download_as_bytes()
-                ),
-                index_col = 0, encoding = 'utf-8'
-            )
-    return data
 
-def upload(filename):
-    UPLOADFILE = os.path.join(os.getcwd(),filename)
-    blob = bucket.blob(filename)
-    blob.upload_from_filename(UPLOADFILE)
-    return True
+def create_cards(recommandations_placeids: list, choosing_instance, score_type: str = 'normal'):
+    # store card HTML content
+    cards_html = []
+    price_levels = {
+        0: '❔',
+        1:'🟩⬜⬜⬜',
+        2:'🟩🟨⬜⬜',
+        3:'🟩🟨🟧⬜',
+        4:'🟩🟨🟧🟥',
+    }
+    
+    for n, place_id in enumerate(recommandations_placeids):
+
+        metadata, _ = choosing_instance.get_metadata_and_reviews(place_id)
+        
+        price_level = metadata['price_level']
+        viz_price_level = price_levels[price_level]
+
+        if score_type == 'normal':
+            score = np.round(metadata['score'], 2)
+        elif score_type == 'augmented':
+            pass
+        
+        card_html = f"""                              
+            <div class="restaurant-card">
+                <div class="grid-container">
+                    <div class="grid-item">
+                        <h1 class="restaurant-name">{n+1}° · {metadata['name']}</h1>
+                        <p class="restaurant-info"> <strong>Scores</strong>
+                            <ul class="details">
+                                <li>Choosing Score: {score} </li>
+                                <li>Price level: {viz_price_level} </li> 
+                            </ul>
+                        </p>
+                    </div>
+                    <div class="grid-item">
+                        <p class="restaurant-info">
+                            <ul class="details">
+                                <li> <strong> Address: </strong> <a href='https://www.google.com/maps/place/{metadata['vicinity'].replace("/","")}'> {metadata['vicinity']} </a> </li>
+                                <li> <strong> Phone:   </strong> <a href="tel:{"".join(metadata['phone_number'].split(" ")[1:]) if metadata['phone_number'] else ""}">
+                                                                    {metadata['phone_number'] if metadata['phone_number'] else "❔"}
+                                                                    </a> </li>
+                                <li> <strong> Opening: </strong> <br> {metadata['opening_time'] if metadata['opening_time'] else "❔"}  </li>
+                            </ul>                        
+                        </p>  
+                    </div>
+                </div>
+            </div>
+        """
+
+        cards_html.append(card_html)
+
+    all_cards_html = "\n".join(cards_html)
+    return all_cards_html

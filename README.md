@@ -1,50 +1,37 @@
 
-# Cos'è Choosing?
+# What's Choosing?
 
-La sua missione unica e imprescindibile è quella di generare un consiglio personalizzato per il tuo prossimo ristorante.
-Finalmente, non dovrai più scrivere a Pippo  *"Oh Pippo sono a Roma, dimmi dove posso andare a mangiare un'ottima pizza*", perchè la risposta te la da Choosing, che è molto più disponibile e preciso di Pippo.
-E basta anche con tutto quel tempo speso davanti ai siti di recensioni a contare le stelline e a confrontare prezzi e numero di commenti delle infinite alternative per poi
-finire a mangiare nella solita osteria.
+Choosing's unique and essential mission is to provide personalized recommendations for your next restaurant/pub/pizzeria/(...). No longer will you need to message Pippo saying, *"Hey Pippo, I'm in Rome, where can I go for a great pizza?"* because Choosing is far more available and precise than Pippo. Say goodbye to spending endless time on review sites counting stars, comparing prices, and number of comments on countless options only to end up eating at the same old tavern.
 
-Dedica il tuo tempo alle cose migliori. A sceglierle ci pensa Choosing.
+Spend your time on better things. Let Choosing do the choosing for you.
 
-Enjoy the perfect meal.
-
-Mi trovi [qua](https://choosing.club/)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://choosing.club)
 
 
-## Come funziona?
+## How does it work?
 
-Choosing usa due strategie alternative:
-                
- 1. Ricerca per similarità tra gli utenti di Choosing in base ai ristoranti in comune e ai rating assegnati
+Choosing utilizes Google Maps APIs to gather updated data on restaurants, pubs, pizzerias, and their respective reviews.
 
- 2. Qualora 1. non restituisca un risultato, Choosing sceglie il ristorante migliore basandosi sulle recensioni di Google
+Search can be conducted based on an address, a radius from that address, and specific requests. These specific requests are passed to an LLM (Mistral through Groq API) responsible for filtering recommendations based on those requests.
 
-Il consiglio che deriva da 1. è molto più personalizzato rispetto a quello di 2. ed è il vero orgoglio di Choosing. L'unica condizione affinché si verifichi è la partecipazione attiva di tanti utenti e il passaparola, se credi nei superpoteri di Choosing.
-
-Per cominciare, identificati con una mail nel menù a sinistra e buon appetito :)
+Choosing is today supporting Italian and English languages.
 
 
 ## Feedback
 
-Per suggerimenti o per rimanere semplicemente in contatto scrivimi a aless.ciocchetti@gmail.com
+For suggestions or just to stay in touch, reach out to me at aless.ciocchetti@gmail.com
 
 
 ## Support
 
-Mantenere e migliorare Choosing ha qualche costo (APIs, server...).
+Maintaining and improving Choosing incurs some costs (APIs, servers...).
 
-Se credi che Choosing sia una bella e utile idea, puoi sostenerla con una piccola donazione qua: [Buy me a coffee](https://www.buymeacoffee.com/palealex)
+If you believe Choosing is a great and useful idea, you can support it with a small donation here:
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/palealex)
 
 
 ## Author
 
-- [Alessandro Ciocchetti](https://www.linkedin.com/in/ac-palealex/)
-
-
-## 🚀 About Me
-Gestisco il mio tempo tra tentativi di scrivere qualcosa che somigli a bel codice, di sviluppare idee che ricordino grandi progetti, di suonare l'armonica come la suonava Paul Butterfield.
-
-Lo sviluppo web e lo studio delle proprietà delle Serie Temporali mi divertono particolarmente.
+- [!["Alessandro Ciocchetti"](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/ac-palealex/)
 
