@@ -63,9 +63,22 @@ list-style-type: none;
     padding: 10px;
 }
 
-iframe {
-    display: none;
+
+.element-container st-emotion-cache-1m90qxh e1f1d6gn4 {
+    display: none !important;
+    background-color: transparent;
 }
+
+iframe {
+    display: none !important;
+    background-color: transparent;
+}
+
+.__web-inspector-hide-shortcut__ {
+    display: none !important;
+    background-color: transparent;
+}
+
 </style>
 """
 
@@ -135,13 +148,6 @@ if 'latlon' not in st.session_state:
     st.session_state['latlon'] = None
 
 with map_expander:  
- 
-    try:
-        my_loc = get_geolocation()
-        def fill_text_input():
-            st.session_state['text_input'] = myfunc.get_current_gps_coordinates(my_loc)[1]
-    except TypeError:
-        my_loc = None
 
     addresstextinput_placeholder = '🔍 Digita un indirizzo o un punto di riferimento (e.g. Piazza del Colosseo, Roma)' \
                                      if st.query_params['lang']=='it' else \
@@ -149,6 +155,14 @@ with map_expander:
     
     address = st.text_input(label='Cosa vuoi cercare', key='text_input', placeholder=addresstextinput_placeholder, label_visibility='collapsed')
 
+
+    try:
+        my_loc = get_geolocation()
+        def fill_text_input():
+            st.session_state['text_input'] = myfunc.get_current_gps_coordinates(my_loc)[1]
+    except TypeError:
+        my_loc = None
+    
     markdown_label = "oppure" if st.query_params['lang']=='it' else "otherwise"
     st.markdown(f"""<small>{markdown_label}</small>""", unsafe_allow_html=True)
     current_position_label = "📍 Cerca vicino a te" if st.query_params['lang']=='it' else '📍 Find near to you'
@@ -157,7 +171,7 @@ with map_expander:
     if st.checkbox(current_position_label, disabled=current_position_status, help=current_position_help, on_change=fill_text_input):
         current_gps_coordinates = myfunc.get_current_gps_coordinates(my_loc)
         st.session_state['latlon'] = current_gps_coordinates[0]
-        st.session_state['address'] = current_gps_coordinates[1]
+        st.session_state['address'] = 'current'
         
     elif address:
         st.session_state['latlon'] = myfunc.get_coordinates(address)
