@@ -13,13 +13,14 @@ def get_coordinates(address: str) -> pd.DataFrame:
     })
     return latlon
 
-def get_current_gps_coordinates():
-    g = geocoder.ip('me') #this function is used to find the current information using IPAdd
-    address = g.address
+def get_current_gps_coordinates(my_loc:dict):
 
-    g = geocoder.osm(address)
-    lat = g.latlng[0]
-    long = g.latlng[1]
+    lat = my_loc['coords']['latitude']
+    long = my_loc['coords']['longitude']
+
+    g = geocoder.osm([lat,long], method='reverse')
+    address = g.street + ", " + g.city + ", " + g.postal + ", " + g.country
+    
     latlon = pd.DataFrame({
         "lat": [lat],
         "lon": [long]

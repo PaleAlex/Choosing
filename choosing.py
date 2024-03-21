@@ -39,7 +39,7 @@ class Choosing():
             
             if 0 in [rating, n_rating]:
                 continue
-            elif any(word in name for word in ('Donald', 'Roadhouse', 'Burger King', 'Piadineria', 'Salumeria')):
+            elif any(word in name for word in ('Donald', 'Roadhouse', 'Burger King', 'Burger king', 'Salumeria')):
                 continue
             elif self.keyword == 'restaurant' and any(word in name for word in ('Caffè', 'Paninoteca')):
                 continue
@@ -83,12 +83,13 @@ class Choosing():
 
         extracted_review_info = [
             {
-            'id': str(r['author_name']).replace(' ', '').lower()+str(r['time']),
-            'language' : r['original_language'],
-            'text' : r['text'].replace('\n', '').replace('\\',''),
-            'time': r['time']
+                'id': str(r['author_name']).replace(' ', '').lower() + str(r['time']),
+                'language': r.get('original_language'),
+                'text': r['text'].replace('\n', '').replace('\\', ''),
+                'time': r['time']
             }
-            for r in reviews]
+            for r in reviews if r.get('original_language')
+        ]
 
         return metadata, extracted_review_info
     

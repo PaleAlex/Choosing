@@ -3,6 +3,7 @@ from choosing import *
 import module as myfunc
 import streamlit as st
 from PIL import Image
+from streamlit_js_eval import get_geolocation
 
 st.set_page_config(page_title="Choosing: enjoy your best meal",
                    page_icon="🔍",
@@ -24,7 +25,7 @@ css_style = """
 }
 
 :root {
-font-size: 20px;
+font-size: 18px;
 }
 
 .restaurant-card {
@@ -73,6 +74,9 @@ with col1:
     image = Image.open('logo.png')
     st.image(image, use_column_width=True)
 
+def get_index_for_selectbox(last_selection:str, mapping:dict):
+    return sorted(list(mapping.values()), reverse=True).index(last_selection)
+
 with col2:
     keywords = {"🍴": "restaurant", "🍺": "pub", "🍕": "pizzeria"}
 
@@ -85,11 +89,13 @@ with col2:
             st.query_params['keyword'] = keywords.get(st.session_state["selected_keyword"])
     
     st.write("")
+    index = get_index_for_selectbox(st.query_params['keyword'], keywords)
     option_keyword = st.selectbox(
         label="None",
         options=keywords,
         on_change=set_keyword,
         key="selected_keyword",
+        index=index,
         label_visibility='hidden'
         )
 
@@ -105,11 +111,13 @@ with col3:
             st.query_params['lang'] = languages.get(st.session_state["selected_language"])
     
     st.write("")
+    index = get_index_for_selectbox(st.query_params['lang'], languages)
     option_lang = st.selectbox(
         label="None",
         options=languages,
         on_change=set_language,
         key="selected_language",
+        index=index,
         label_visibility='hidden'
         )
 
@@ -124,25 +132,30 @@ if 'latlon' not in st.session_state:
     st.session_state['latlon'] = None
 
 with map_expander:
-    def clear_text_input():
-        st.session_state['text_input'] = myfunc.get_current_gps_coordinates()[1]
+    try:
+        my_loc = get_geolocation()
+        def fill_text_input():
+            st.session_state['text_input'] = myfunc.get_current_gps_coordinates(my_loc)[1]
+    except TypeError:
+        my_loc = None
     
 
     addresstextinput_placeholder = '🔍 Digita un indirizzo o un punto di riferimento (e.g. Piazza del Colosseo, Roma)' \
                                      if st.query_params['lang']=='it' else \
                                      "🔍 Write an address or a landmark (e.g. Colosseum, Rome)"
     
-    address = st.text_input(label='Cosa vuoi cercare', key='text_input', help=None, placeholder=addresstextinput_placeholder, label_visibility='collapsed')
+    address = st.text_input(label='Cosa vuoi cercare', key='text_input', placeholder=addresstextinput_placeholder, label_visibility='collapsed')
     markdown_label = "oppure" if st.query_params['lang']=='it' else "otherwise"
     st.markdown(f"""<small>{markdown_label}</small>""", unsafe_allow_html=True)
 
     current_position_label = "📍 Cerca vicino a te" if st.query_params['lang']=='it' else '📍 Find near to you'
-    
-    current_position_status = False if myfunc.get_current_gps_coordinates()[1]!=address else True
-    if st.button(current_position_label, on_click=clear_text_input, disabled=current_position_status):
-        st.session_state['latlon'] = myfunc.get_current_gps_coordinates()[0]
-        st.session_state['address'] = 'current'
-
+    current_position_status = True if my_loc is None else False
+    current_position_help = "Allow for geolocation first!" if my_loc is None else None
+    if st.checkbox(current_position_label, disabled=current_position_status, help=current_position_help, on_change=fill_text_input):
+        current_gps_coordinates = myfunc.get_current_gps_coordinates(my_loc)
+        st.session_state['latlon'] = current_gps_coordinates[0]
+        st.session_state['address'] = current_gps_coordinates[1]
+        
     elif address:
         st.session_state['latlon'] = myfunc.get_coordinates(address)
         st.session_state['address'] = address
@@ -196,7 +209,7 @@ if search_button:
 
         with st.spinner(spinner_label):
             recommandations_placeids = ch.formatted_df_to_dict.keys()
-            if len(recommandations_placeids)<7:
+            if len(recommandations_placeids)<7 and st.query_params['keyword'] == 'restaurant':
                 warning_label = "Non sono stato bravo a trovare molti suggerimenti. Prova a modificare l'indirizzo e cerca di nuovo" \
                                 if st.query_params['lang']=='it' else \
                                 "I couldn't give you enough recommandations. Try to change the address and search again"
@@ -245,7 +258,7 @@ footer="""
     <small>
     <a href="https://www.linkedin.com/in/ac-palealex/", target="_blank", class="to_hide"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)"/></a>
     <a href="https://www.buymeacoffee.com/palealex", target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png"/></a>
-    <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fchoosing.club%2F&label=Users&labelColor=%23ff8a65&countColor=%23d9e3f0" />
+    <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fchoosing.club%2F&label=Visitors&labelColor=%23ff8a65&countColor=%23d9e3f0" />
     </small>
 </div>
 """
