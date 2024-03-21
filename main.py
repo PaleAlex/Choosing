@@ -63,6 +63,9 @@ list-style-type: none;
     padding: 10px;
 }
 
+iframe {
+    display: none;
+}
 </style>
 """
 
@@ -131,23 +134,23 @@ if 'address' not in st.session_state:
 if 'latlon' not in st.session_state:
     st.session_state['latlon'] = None
 
-with map_expander:
+with map_expander:  
+ 
     try:
         my_loc = get_geolocation()
         def fill_text_input():
             st.session_state['text_input'] = myfunc.get_current_gps_coordinates(my_loc)[1]
     except TypeError:
         my_loc = None
-    
 
     addresstextinput_placeholder = '🔍 Digita un indirizzo o un punto di riferimento (e.g. Piazza del Colosseo, Roma)' \
                                      if st.query_params['lang']=='it' else \
                                      "🔍 Write an address or a landmark (e.g. Colosseum, Rome)"
     
     address = st.text_input(label='Cosa vuoi cercare', key='text_input', placeholder=addresstextinput_placeholder, label_visibility='collapsed')
+
     markdown_label = "oppure" if st.query_params['lang']=='it' else "otherwise"
     st.markdown(f"""<small>{markdown_label}</small>""", unsafe_allow_html=True)
-
     current_position_label = "📍 Cerca vicino a te" if st.query_params['lang']=='it' else '📍 Find near to you'
     current_position_status = True if my_loc is None else False
     current_position_help = "Allow for geolocation first!" if my_loc is None else None
