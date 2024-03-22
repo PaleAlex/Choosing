@@ -1,4 +1,4 @@
-import config
+from config import maps_api_key
 from module import *
 
 import numpy as np
@@ -10,7 +10,7 @@ import re
 class Choosing():
     
     def __init__(self, call_id : str, radius: float, keyword: str, lang: str, coordinates: list):
-        self.maps_api_key = config.maps_api_key
+        self.maps_api_key = maps_api_key
         self.call_id = call_id
         self.radius = radius
         self.keyword = keyword
