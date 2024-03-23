@@ -3,7 +3,7 @@ from choosing import *
 import module as myfunc
 import streamlit as st
 from PIL import Image
-from streamlit_js_eval import get_geolocation
+#from streamlit_js_eval import get_geolocation
 
 st.set_page_config(page_title="Choosing: enjoy your best meal",
                    page_icon="🔍",
@@ -265,7 +265,7 @@ if search_button:
                             "I couldn't give you enough recommandations. Try to change the address and search again"
             st.warning(warning_label, icon='😖')
 
-        all_cards_html = create_cards(recommandations_placeids, ch, formatted_LLM_matched_places)
+        all_cards_html = create_cards(recommandations_placeids, ch, LLM_matched_places)
         st.markdown(all_cards_html, unsafe_allow_html=True)
 
 #FOOTER
