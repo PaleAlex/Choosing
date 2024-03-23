@@ -255,14 +255,14 @@ if search_button:
             context = ch.build_dataset()
         with st.spinner(spinner_label_3):
             LLM_matched_places = myfunc.promptLLM(context=context, preferences=specific_request, lang=st.query_params['lang'])
-            formatted_LLM_matched_places = extract_dict_from_llm_answer(LLM_matched_places)
-            st.markdown(formatted_LLM_matched_places)
+            #formatted_LLM_matched_places = extract_dict_from_llm_answer(LLM_matched_places)
+            st.markdown(LLM_matched_places)
     
         recommandations_placeids = best_places_to_be_analyzed.keys()
         if len(recommandations_placeids)<7:
             warning_label = "Non sono stato bravo a trovare molti suggerimenti. Prova a modificare l'indirizzo e cerca di nuovo" \
                             if st.query_params['lang']=='it' else \
-                            "I couldn't give you enough recommandations. Try to change the address and search again"
+                            "I couldn't found enough recommandations. Try to change the address and search again"
             st.warning(warning_label, icon='😖')
 
         all_cards_html = create_cards(recommandations_placeids, ch, LLM_matched_places)

@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from groq import Groq
 import geocoder
-import ast
+#import ast
 
 
 def get_coordinates(address: str) -> pd.DataFrame:
@@ -104,7 +104,7 @@ def promptLLM(context: str, preferences: str, lang: str):
                 {
                 "role": "system",
                 "content": """
-                Welcome to the advanced Restaurant Recommender System!
+                Welcome to Choosing: the advanced Restaurant Recommender System!
                 Your goal is to craft tailored restaurant recommendations by aligning user preferences with reviews.
 
                 You will read user <preferences> from a normal text and restaurant reviews <context> from a dictionary with this structure:
@@ -114,15 +114,16 @@ def promptLLM(context: str, preferences: str, lang: str):
                 ...
                 }
 
+                Return your answer in a formatted and readable markdown.
                 Best of luck with your personalized suggestions!
                 """
                 },
                 {
                 "role": "user",
                 "content": f"""
-                Search for restaurants with reviews aligning with these preferences:
+                Search for restaurants with reviews aligning with my preferences:
                 <preferences>
-                {preferences}
+                "{preferences}"
                 </preferences>
 
                 Restaurant reviews:
@@ -135,14 +136,13 @@ def promptLLM(context: str, preferences: str, lang: str):
                 2) Assess the number of relevant reviews per restaurant, highlighting this count for decision-making. More matching reviews suggest a better fit! Exclude restaurants with no relevant reviews.
                 3) Analyze retained reviews to craft your recommendations. Give high priority to the expressed <preferences>. Don't include the restaurants excluded in step 2 in your final answer.
 
-                Always provide your answer in a json format enclosed in curly braces.
-                Each key represents the ranked index from the highest to the lowest fit, starting from 0, with values as another dictionary containing:
+                Your answer should highlight:
                 - 'name': Restaurant name.
-                - 'explanation': Briefly justify why you consider the restaurant a good fit for <preferences> (max 15 words).
+                - 'explanation': Briefly justify why you consider the restaurant a good fit for <preferences>.
                 - 'YESdishes': List specific dishes (single names only) found in reviews that potentially match <preferences> (leave empty if unsure).
                 - 'confidence': Your confidence level about your answer in percentage.
 
-                Your answer should not include restaurants whose reviews do not contain any direct mentions to <preferences>, even if they are highly recommended in general. Remember: we are looking for tailored recommendations, not general ones!
+                Your answer should not include restaurants whose reviews do not contain any direct mentions to <preferences>, even if they are highly recommended in general. Remember: I am looking for tailored recommendations, not general ones!
 
                 """
                 }
@@ -154,72 +154,72 @@ def promptLLM(context: str, preferences: str, lang: str):
     else:
         chat_completion = client.chat.completions.create(
             messages=[
-            {
-            "role": "system",
-            "content": """
-            Benvenuto nell'avanzato sistema di raccomandazione per ristoranti!
-            Il tuo obiettivo è di suggerire i migliori ristoranti agli utenti allineando le loro preferenze con le recensioni dei ristoranti.
+                {
+                "role": "system",
+                "content": """
+                Benvenuto in Choosing: l'avanzato sistema di raccomandazione per ristoranti!
+                Il tuo obiettivo è di suggerire i migliori ristoranti agli utenti allineando le loro preferenze con le recensioni dei ristoranti.
 
-            Leggerai le <preferenze> degli utenti da un normale testo e il <contesto> delle recensioni dei ristoranti da un dizionario con questa struttura:
-            {
-            'ristorante1': ['recensione1','recensione2','recensione3',...],
-            'ristorante2': ['recensione4','recensione5','recensione6',...],
-            ...
-            }
+                Leggerai le <preferenze> degli utenti da un normale testo e il <contesto> delle recensioni dei ristoranti da un dizionario con questa struttura:
+                {
+                'ristorante1': ['recensione1','recensione2','recensione3',...],
+                'ristorante2': ['recensione4','recensione5','recensione6',...],
+                ...
+                }
 
-            Buona fortuna con i tuoi consigli!
-            """
-            },
-            {
-            "role": "user",
-            "content": f"""
-            Trova i ristoranti le cui recensioni siano allineate con queste preferenze:
-            <preferenze>
-            {preferences}
-            </preferenze>
+                Restituisci in output la tua risposta in un formato leggibile e chiaro.
+                Buona fortuna con i tuoi consigli!
+                """
+                },
+                {
+                "role": "user",
+                "content": f"""
+                Trova i ristoranti le cui recensioni siano allineate con queste mie preferenze:
+                <preferenze>
+                "{preferences}"
+                </preferenze>
 
-            Recensioni dei ristoranti:
-            <contesto>
-            {context}
-            </contesto>
+                Recensioni dei ristoranti:
+                <contesto>
+                {context}
+                </contesto>
 
-            Prova a ragionare come se facessi RAG (Retrieval Augmented Generation) seguendo questi passaggi:
-            1) Filtra le recensioni non rilevanti in base alle <preferenze>.
-            2) Conta il numero di recensioni rilevanti per ristorante. Più recensioni corrispondenti suggeriscono una più alta probabilità che quel ristorante sia da consigliare! Escludi i ristoranti senza recensioni rilevanti.
-            3) Analizza le recensioni rimaste per creare le tue raccomandazioni. Dai alta priorità alle <preferenze> espresse. Non includere i ristoranti esclusi nel passaggio 2 nella tua risposta finale.
+                Prova a ragionare come se facessi RAG (Retrieval Augmented Generation) seguendo questi passaggi:
+                1) Filtra le recensioni non rilevanti in base alle <preferenze>.
+                2) Conta il numero di recensioni rilevanti per ristorante. Più recensioni corrispondenti suggeriscono una più alta probabilità che quel ristorante sia da consigliare! Escludi i ristoranti senza recensioni rilevanti.
+                3) Analizza le recensioni rimaste per creare le tue raccomandazioni. Dai alta priorità alle <preferenze> espresse. Non includere i ristoranti esclusi nel passaggio 2 nella tua risposta finale.
 
-            Fornisci sempre la tua risposta in un formato json racchiuso tra parentesi graffe. La lingua del testo della tua risposta deve essere Italiano.
-            Ogni chiave rappresenta il posto in classifica dal più alto al più basso, a partire da 0, con i valori che sono un altro dizionario contenente:
-            - 'name': Nome del ristorante.
-            - 'explanation': Giustifica il posizionamento in classifica che hai assegnato a questo ristorante in funzione delle <preferenze> (max 15 parole).
-            - 'YESdishes': Elenco dei piatti specifici (solo nomi singoli) trovati nelle recensioni che corrispondono alle <preferenze> (lascia vuoto se non sei sicuro).
-            - 'confidence': Il tuo livello di confidenza riguardo la tua risposta in percentuale.
+                La tua risposta dovrà evidenziare:
+                - 'name': Nome del ristorante.
+                - 'explanation': Giustifica il posizionamento in classifica che hai assegnato a questo ristorante in funzione delle <preferenze> (max 15 parole).
+                - 'YESdishes': Elenco dei piatti specifici (solo nomi singoli) trovati nelle recensioni che corrispondono alle <preferenze> (lascia vuoto se non sei sicuro).
+                - 'confidence': Il tuo livello di confidenza riguardo la tua risposta in percentuale.
 
-            La tua risposta non deve includere ristoranti le cui recensioni non contengono menzioni dirette alle <preferenze>, anche se sono altamente raccomandati in generale. Ricorda: stiamo cercando raccomandazioni personalizzate, non generiche.
-            """
-            }
+                La tua risposta non deve includere ristoranti le cui recensioni non contengono menzioni dirette alle <preferenze>, anche se sono altamente raccomandati in generale. Ricorda: sto cercando raccomandazioni personalizzate, non generiche.
+                """
+                }
             ],
-            model="llama2-70b-4096",
+            model="mixtral-8x7b-32768",
             temperature=0,
             max_tokens=512
         )
     return chat_completion.choices[0].message.content
 
 
-def extract_dict_from_llm_answer(llm_answer):
-    start_index = llm_answer.find('{')
-    end_index = llm_answer.rfind('}')
+# def extract_dict_from_llm_answer(llm_answer):
+#     start_index = llm_answer.find('{')
+#     end_index = llm_answer.rfind('}')
     
-    if start_index == -1 or end_index == -1:
-        return llm_answer  # Return an empty dictionary if no valid dictionary found
+#     if start_index == -1 or end_index == -1:
+#         return llm_answer  # Return an empty dictionary if no valid dictionary found
     
-    dict_str = llm_answer[start_index:end_index+1]
+#     dict_str = llm_answer[start_index:end_index+1]
     
-    try:
-        extracted_dict = ast.literal_eval(dict_str)
-        if isinstance(extracted_dict, dict):
-            return extracted_dict
-        else:
-            return {}  # Return an empty dictionary if the extracted content is not a dictionary
-    except (SyntaxError, ValueError):
-        return llm_answer # Return an empty dictionary in case of any errors
+#     try:
+#         extracted_dict = ast.literal_eval(dict_str)
+#         if isinstance(extracted_dict, dict):
+#             return extracted_dict
+#         else:
+#             return {}  # Return an empty dictionary if the extracted content is not a dictionary
+#     except (SyntaxError, ValueError):
+#         return llm_answer # Return an empty dictionary in case of any errors
