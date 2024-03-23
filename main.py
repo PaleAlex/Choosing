@@ -63,7 +63,7 @@ list-style-type: none;
     padding: 10px;
 }
 
-
+/*
 iframe {
     display: none !important;
     background-color: transparent;
@@ -79,6 +79,7 @@ iframe {
         display: none;
     }
 }
+*/
 
 </style>
 """
@@ -148,44 +149,48 @@ if 'address' not in st.session_state:
 if 'latlon' not in st.session_state:
     st.session_state['latlon'] = None
 
-default_radius_value = 0.5
+#default_radius_value = 0.5
 
 with map_expander:  
-    try:
-        my_loc = get_geolocation()
-        def fill_text_input():
-            st.session_state['text_input'] = myfunc.get_current_gps_coordinates(my_loc)[1]
-    except TypeError:
-        my_loc = None
+    # try:
+    #     my_loc = get_geolocation()
+    #     def fill_text_input():
+    #         current_gps_coordinates = myfunc.get_current_gps_coordinates(my_loc) 
+    #         if current_gps_coordinates[1]:
+    #             st.session_state['text_input'] = current_gps_coordinates[1]
+    #         else:
+    #             st.session_state['text_input'] = 'POSITION NOT FOUND'
+    # except TypeError:
+    #     my_loc = None
 
     addresstextinput_placeholder = '🔍 Digita un indirizzo o un punto di riferimento (e.g. Piazza del Colosseo, Roma)' \
                                      if st.query_params['lang']=='it' else \
                                      "🔍 Write an address or a landmark (e.g. Colosseum, Rome)"
     
     address = st.text_input(label='Cosa vuoi cercare', key='text_input', placeholder=addresstextinput_placeholder, label_visibility='collapsed')
+    
+    #current_position_label = "📍Oppure cerca vicino a te" if st.query_params['lang']=='it' else '📍 Or find near to you'
+    #current_position_status = True if my_loc is None else False
+    #current_position_help = "Allow for geolocation first!" if my_loc is None else None
 
+    # if st.checkbox(current_position_label, disabled=current_position_status, help=current_position_help, on_change=fill_text_input):
+    #     current_gps_coordinates = myfunc.get_current_gps_coordinates(my_loc)
+    #     st.session_state['latlon'] = current_gps_coordinates[0]
+    #     st.session_state['address'] = 'current'
+    #     default_radius_value = current_gps_coordinates[2]/1000 if current_gps_coordinates[2] else None
+    # elif address:
 
     
-    current_position_label = "📍Oppure cerca vicino a te" if st.query_params['lang']=='it' else '📍 Or find near to you'
-    current_position_status = True if my_loc is None else False
-    current_position_help = "Allow for geolocation first!" if my_loc is None else None
-
-    if st.checkbox(current_position_label, disabled=current_position_status, help=current_position_help, on_change=fill_text_input):
-        current_gps_coordinates = myfunc.get_current_gps_coordinates(my_loc)
-        st.session_state['latlon'] = current_gps_coordinates[0]
-        st.session_state['address'] = 'current'
-        default_radius_value = current_gps_coordinates[2]/1000
-    elif address:
-        st.session_state['latlon'] = myfunc.get_coordinates(address)
-        st.session_state['address'] = address
+    st.session_state['address'] = address
     
     if st.session_state['address'] != "":
         try:
+            st.session_state['latlon'] = myfunc.get_coordinates(st.session_state['address'])
             colcol1, colcol2 = st.columns([8,4])
 
             with colcol2:
                 radius_label = "**Raggio [km]**" if st.query_params['lang']=='it' else "**Radius [km]**"
-                radius = st.number_input(radius_label, min_value=0.5, step=0.5, value=default_radius_value, key='radius_input')*1000
+                radius = st.number_input(radius_label, min_value=0.5, step=0.5, key='radius_input')*1000 #value=default_radius_value
 
                 specific_request_label = "Opzionale: descrivimi cosa ti piacerebbe mangiare! 😉 (*Powered by LLM*)" \
                                          if st.query_params['lang']=='it' else \
@@ -227,7 +232,7 @@ if search_button:
     title_string = "#### 🎉 Ecco cosa ha trovato per te Choosing!" if st.query_params['lang']=='it' else "#### 🎉 Here is what Choosing has found for you!"
     st.write(title_string)   
     
-    if specific_request=="":
+    if specific_request=="" or st.query_params['keyword'] != 'restaurant':
         spinner_label_1 = 'Sto cercando...' if st.query_params['lang']=='it' else "I am searching..."
 
         with st.spinner(spinner_label_1):
@@ -238,11 +243,11 @@ if search_button:
                                 "I couldn't give you enough recommandations. Try to change the address and search again"
                 st.warning(warning_label, icon='😖')
 
-            all_cards_html = create_cards(recommandations_placeids, ch, score_type='normal')
+            all_cards_html = create_cards(recommandations_placeids, ch)
         st.markdown(all_cards_html, unsafe_allow_html=True)
     
-    else:
-        st.write(specific_request)
+    elif specific_request!="" and st.query_params['keyword'] == 'restaurant':
+
         best_places_to_be_analyzed = ch.formatted_df_to_dict
         spinner_label_2 = 'Leggendo recensioni...' if st.query_params['lang']=='it' else "Reading reviews..."
         spinner_label_3 = 'Personalizzando i consigli...' if st.query_params['lang']=='it' else "Creating personalized recommandations..."
@@ -250,8 +255,18 @@ if search_button:
             context = ch.build_dataset()
         with st.spinner(spinner_label_3):
             LLM_matched_places = myfunc.promptLLM(context=context, preferences=specific_request, lang=st.query_params['lang'])
-            #formatted_LLM_matched_places = extract_dict_from_llm_answer(LLM_matched_places)
-            st.markdown(LLM_matched_places)
+            formatted_LLM_matched_places = extract_dict_from_llm_answer(LLM_matched_places)
+            st.markdown(formatted_LLM_matched_places)
+    
+        recommandations_placeids = best_places_to_be_analyzed.keys()
+        if len(recommandations_placeids)<7:
+            warning_label = "Non sono stato bravo a trovare molti suggerimenti. Prova a modificare l'indirizzo e cerca di nuovo" \
+                            if st.query_params['lang']=='it' else \
+                            "I couldn't give you enough recommandations. Try to change the address and search again"
+            st.warning(warning_label, icon='😖')
+
+        all_cards_html = create_cards(recommandations_placeids, ch, formatted_LLM_matched_places)
+        st.markdown(all_cards_html, unsafe_allow_html=True)
 
 #FOOTER
 footer="""

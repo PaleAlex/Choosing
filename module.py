@@ -17,23 +17,27 @@ def get_coordinates(address: str) -> pd.DataFrame:
     })
     return latlon
 
-def get_current_gps_coordinates(my_loc:dict):
+# def get_current_gps_coordinates(my_loc:dict):
 
-    lat = my_loc['coords']['latitude']
-    long = my_loc['coords']['longitude']
-    accuracy = my_loc['coords']['accuracy']
+#     lat = my_loc['coords']['latitude']
+#     long = my_loc['coords']['longitude']
+#     accuracy = my_loc['coords']['accuracy']
 
-    g = geocoder.osm([lat,long], method='reverse')
-    address = g.street + ", " + g.city + ", " + g.country
-    
-    latlon = pd.DataFrame({
-        "lat": [lat],
-        "lon": [long]
-    })
-    return latlon, address, accuracy
+#     g = geocoder.osm([lat,long], method='reverse')
+#     try:
+#         address = g.street + ", " + g.city + ", " + g.country
+#     except TypeError:
+#         address = g.city + ", " + g.country
+#     else:
+#         return [None,None,None]
+#     latlon = pd.DataFrame({
+#         "lat": [lat],
+#         "lon": [long]
+#     })
+#     return latlon, address, accuracy
 
 
-def create_cards(recommandations_placeids: list, choosing_instance, score_type: str = 'normal'):
+def create_cards(recommandations_placeids: list, choosing_instance, llm_answer=None):
     # store card HTML content
     cards_html = []
     price_levels = {
@@ -51,11 +55,12 @@ def create_cards(recommandations_placeids: list, choosing_instance, score_type: 
         price_level = metadata['price_level']
         viz_price_level = price_levels[price_level]
 
-        if score_type == 'normal':
-            score = np.round(metadata['score'], 2)
-        elif score_type == 'augmented':
-            pass
-        
+        score = np.round(metadata['score'], 2)
+
+        if llm_answer:
+            if metadata['name'] not in llm_answer:
+                continue
+
         card_html = f"""                              
             <div class="restaurant-card">
                 <div class="grid-container">
@@ -102,8 +107,7 @@ def promptLLM(context: str, preferences: str, lang: str):
                 Welcome to the advanced Restaurant Recommender System!
                 Your goal is to craft tailored restaurant recommendations by aligning user preferences with reviews.
 
-                User preferences are expressed through a concise text input.
-                Restaurant reviews are structured as a dictionary:
+                You will read user <preferences> from a normal text and restaurant reviews <context> from a dictionary with this structure:
                 {
                 'restaurant1': ['review1','review2','review3',...],
                 'restaurant2': ['review4','review5','review6',...],
@@ -156,8 +160,7 @@ def promptLLM(context: str, preferences: str, lang: str):
             Benvenuto nell'avanzato sistema di raccomandazione per ristoranti!
             Il tuo obiettivo è di suggerire i migliori ristoranti agli utenti allineando le loro preferenze con le recensioni dei ristoranti.
 
-            Leggerai le preferenze degli utenti da un input di testo breve.
-            Le recensioni dei ristoranti invece le troverai strutturate come un dizionario:
+            Leggerai le <preferenze> degli utenti da un normale testo e il <contesto> delle recensioni dei ristoranti da un dizionario con questa struttura:
             {
             'ristorante1': ['recensione1','recensione2','recensione3',...],
             'ristorante2': ['recensione4','recensione5','recensione6',...],
@@ -196,9 +199,9 @@ def promptLLM(context: str, preferences: str, lang: str):
             """
             }
             ],
-        model="llama2-70b-4096",
-        temperature=0,
-        max_tokens=512
+            model="llama2-70b-4096",
+            temperature=0,
+            max_tokens=512
         )
     return chat_completion.choices[0].message.content
 
@@ -208,7 +211,7 @@ def extract_dict_from_llm_answer(llm_answer):
     end_index = llm_answer.rfind('}')
     
     if start_index == -1 or end_index == -1:
-        return {}  # Return an empty dictionary if no valid dictionary found
+        return llm_answer  # Return an empty dictionary if no valid dictionary found
     
     dict_str = llm_answer[start_index:end_index+1]
     
@@ -218,6 +221,5 @@ def extract_dict_from_llm_answer(llm_answer):
             return extracted_dict
         else:
             return {}  # Return an empty dictionary if the extracted content is not a dictionary
-    except (SyntaxError, ValueError) as e:
-        print("Error extracting dictionary:", e)
-        return {}  # Return an empty dictionary in case of any errors
+    except (SyntaxError, ValueError):
+        return llm_answer # Return an empty dictionary in case of any errors
