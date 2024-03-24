@@ -48,7 +48,10 @@ def create_cards(recommandations_placeids: list, choosing_instance, llm_answer=N
         4:'🟩🟨🟧🟥',
     }
     
-    for n, place_id in enumerate(recommandations_placeids):
+    rank = 0
+    
+    for place_id in recommandations_placeids:
+        rank += 1
 
         metadata, _ = choosing_instance.get_metadata_and_reviews(place_id)
         
@@ -59,13 +62,14 @@ def create_cards(recommandations_placeids: list, choosing_instance, llm_answer=N
 
         if llm_answer:
             if metadata['name'] not in llm_answer:
+                rank -= 1
                 continue
 
         card_html = f"""                              
             <div class="restaurant-card">
                 <div class="grid-container">
                     <div class="grid-item">
-                        <h1 class="restaurant-name">{n+1}° · {metadata['name']}</h1>
+                        <h1 class="restaurant-name">{rank}° · {metadata['name']}</h1>
                         <p class="restaurant-info"> <strong>Scores</strong>
                             <ul class="details">
                                 <li>Choosing Score: {score} </li>
@@ -137,10 +141,10 @@ def promptLLM(context: str, preferences: str, lang: str):
                 3) Analyze retained reviews to craft your recommendations. Give high priority to the expressed <preferences>. Don't include the restaurants excluded in step 2 in your final answer.
 
                 Your answer should highlight:
-                - 'name': Restaurant name.
-                - 'explanation': Briefly justify why you consider the restaurant a good fit for <preferences>.
-                - 'YESdishes': List specific dishes (single names only) found in reviews that potentially match <preferences> (leave empty if unsure).
-                - 'confidence': Your confidence level about your answer in percentage.
+                - The restaurant name.
+                - A brief explanation of why you consider the restaurant a good fit for <preferences>.
+                - A list of specific dishes (single names only) found in reviews that potentially match <preferences> (leave empty if unsure).
+                - Your confidence level about your answer in percentage.
 
                 Your answer should not include restaurants whose reviews do not contain any direct mentions to <preferences>, even if they are highly recommended in general. Remember: I am looking for tailored recommendations, not general ones!
 
@@ -167,7 +171,7 @@ def promptLLM(context: str, preferences: str, lang: str):
                 ...
                 }
 
-                Restituisci in output la tua risposta in un formato leggibile e chiaro.
+                Restituisci in output la tua risposta in un formato markdown leggibile e chiaro.
                 Buona fortuna con i tuoi consigli!
                 """
                 },
@@ -190,10 +194,10 @@ def promptLLM(context: str, preferences: str, lang: str):
                 3) Analizza le recensioni rimaste per creare le tue raccomandazioni. Dai alta priorità alle <preferenze> espresse. Non includere i ristoranti esclusi nel passaggio 2 nella tua risposta finale.
 
                 La tua risposta dovrà evidenziare:
-                - 'name': Nome del ristorante.
-                - 'explanation': Giustifica il posizionamento in classifica che hai assegnato a questo ristorante in funzione delle <preferenze> (max 15 parole).
-                - 'YESdishes': Elenco dei piatti specifici (solo nomi singoli) trovati nelle recensioni che corrispondono alle <preferenze> (lascia vuoto se non sei sicuro).
-                - 'confidence': Il tuo livello di confidenza riguardo la tua risposta in percentuale.
+                - Il nome del ristorante.
+                - La spiegazione del posizionamento in classifica che hai assegnato a questo ristorante in funzione delle <preferenze>.
+                - L'elenco dei piatti specifici (solo nomi singoli) trovati nelle recensioni che corrispondono alle <preferenze> (lascia vuoto se non sei sicuro).
+                - Il tuo livello di confidenza riguardo la tua risposta in percentuale.
 
                 La tua risposta non deve includere ristoranti le cui recensioni non contengono menzioni dirette alle <preferenze>, anche se sono altamente raccomandati in generale. Ricorda: sto cercando raccomandazioni personalizzate, non generiche.
                 """

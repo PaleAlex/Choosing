@@ -25,42 +25,58 @@ css_style = """
 }
 
 :root {
-font-size: 20px;
+    font-size: 20px;
 }
 
 .restaurant-card {
-border-radius: 8px;
-padding: 20px;
-margin-bottom: 20px;
-border: 1px solid rgba(255, 255, 255, .25);
-background-color: rgba(255, 255, 255, 0.45);
-box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.25);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, .25);
+    background-color: rgba(255, 255, 255, 0.45);
+    box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.25);
 }
 
 .restaurant-name {
-font-size: 30px;
+    font-size: 30px;
 }
 
 .restaurant-info {
-margin-bottom: 10px;
+    margin-bottom: 10px;
+    word-wrap: break-word; /* Ensure text does not overflow */
 }
 
 .details {
-list-style-type: none;
+    list-style-type: none;
+    padding: 0; /* Remove default padding */
 }
 
 .grid-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-gap: 5px; /* Add some space between columns */
-
-    @media (max-width: 768px) {
-        grid-template-columns: 1fr; /* On smaller screens, switch to a single column layout */
-    }
 }
 
 .grid-item {
     padding: 10px;
+}
+
+@media (max-width: 768px) {
+    .grid-container {
+        grid-template-columns: 1fr; /* On smaller screens, switch to a single column layout */
+    }
+}
+
+@media (max-width: 375px) {
+    :root {
+        font-size: 16px; /* Adjust font size for smaller screens */
+    }
+    .restaurant-name {
+        font-size: 24px; /* Adjust heading size for smaller screens */
+    }
+    .restaurant-info, .details li {
+        font-size: 14px; /* Adjust text size for better fit */
+    }
 }
 
 /*
@@ -249,23 +265,34 @@ if search_button:
     elif specific_request!="" and st.query_params['keyword'] == 'restaurant':
 
         best_places_to_be_analyzed = ch.formatted_df_to_dict
+        recommandations_placeids = best_places_to_be_analyzed.keys()
+
+        if len(recommandations_placeids)<7:
+            warning_label = "Non sono stato bravo a trovare molti suggerimenti. Prova a modificare l'indirizzo o aumentare il raggio di ricerca" \
+                            if st.query_params['lang']=='it' else \
+                            "I couldn't found enough recommandations. Try to change the address or the radius and search again"
+            st.warning(warning_label, icon='😖')
+
         spinner_label_2 = 'Leggendo recensioni...' if st.query_params['lang']=='it' else "Reading reviews..."
         spinner_label_3 = 'Personalizzando i consigli...' if st.query_params['lang']=='it' else "Creating personalized recommandations..."
+        
         with st.spinner(spinner_label_2):
             context = ch.build_dataset()
         with st.spinner(spinner_label_3):
             LLM_matched_places = myfunc.promptLLM(context=context, preferences=specific_request, lang=st.query_params['lang'])
             #formatted_LLM_matched_places = extract_dict_from_llm_answer(LLM_matched_places)
-            st.markdown(LLM_matched_places)
-    
-        recommandations_placeids = best_places_to_be_analyzed.keys()
-        if len(recommandations_placeids)<7:
-            warning_label = "Non sono stato bravo a trovare molti suggerimenti. Prova a modificare l'indirizzo e cerca di nuovo" \
-                            if st.query_params['lang']=='it' else \
-                            "I couldn't found enough recommandations. Try to change the address and search again"
-            st.warning(warning_label, icon='😖')
-
-        all_cards_html = create_cards(recommandations_placeids, ch, LLM_matched_places)
+            if len(LLM_matched_places)<100:
+                LLM_warning_label = "Non sono stato bravo a trovare molti suggerimenti in base alle tue richieste specifiche. Prova a chiedermi qualcos'altro" \
+                                    if st.query_params['lang']=='it' else \
+                                    "I couldn't found enough recommandations based on your specific requests. Try asking me something else"
+                st.warning(LLM_warning_label, icon='😖')
+                info_label = "**Tutti i ristoranti valutati: \n**" if st.query_params['lang']=='it' else "**All considered restaurants: \n**"
+                st.write(info_label)
+                all_cards_html = create_cards(recommandations_placeids, ch)
+            else:
+                st.markdown(LLM_matched_places)
+                all_cards_html = create_cards(recommandations_placeids, ch, LLM_matched_places)
+        
         st.markdown(all_cards_html, unsafe_allow_html=True)
 
 #FOOTER
