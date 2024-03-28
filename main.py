@@ -112,7 +112,7 @@ def get_index_for_selectbox(last_selection:str, mapping:dict):
     return sorted(list(mapping.values()), reverse=True).index(last_selection)
 
 with col2:
-    keywords = {"🍴": "restaurant", "🍺": "pub", "🍕": "pizzeria"}
+    keywords = {"🍴": "restaurant", "🍺": "pub", "🍕": "pizzeria", "🍸": "cocktail"}
 
     if "keyword" not in st.query_params:
         st.query_params['keyword'] = 'restaurant'
@@ -217,9 +217,13 @@ with map_expander:
                                                 'I want to eat handmade pasta like Lasagna or Tagliatelle'
                 
                 specific_request_status = False if st.query_params['keyword']=='restaurant' else True
-                specific_request_help = 'Disponibile solo per la ricerca di ristoranti'\
-                                        if st.query_params['lang']=='it' else \
-                                        'Available only for restaurant recommandation'
+
+                if st.query_params['keyword']=='restaurant':
+                    specific_request_help = None
+                else:
+                    specific_request_help = 'Disponibile solo per la ricerca di ristoranti'\
+                                            if st.query_params['lang']=='it' else \
+                                            'Available only for restaurant recommandation'
 
                 specific_request = st.text_area(specific_request_label, max_chars=80, key="prompt_text_area", placeholder=specific_request_placeholder, help=specific_request_help, disabled=specific_request_status)
                 
