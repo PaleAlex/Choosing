@@ -36,10 +36,11 @@ class Choosing():
             price_level = result.get('price_level', 0)
             vicinity = result['vicinity']
             score = rating * np.log(0.001 + np.sqrt(n_rating))
-            
-            if 0 in [rating, n_rating]:
+
+            #quality constraints
+            if score < 12:
                 continue
-            elif any(word in name for word in ('Donald', 'Roadhouse', 'Burger King', 'Burger king', 'Salumeria')):
+            elif any(word in name for word in ('Donald', 'Roadhouse', 'Burger King', 'Burger king', 'Old Wild West', "Autogrill")):
                 continue
             elif self.keyword == 'restaurant' and any(word in name for word in ('Caffè', 'Paninoteca')):
                 continue
