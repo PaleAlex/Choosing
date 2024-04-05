@@ -109,7 +109,7 @@ def promptLLM(context: str, preferences: str, lang: str):
                 "role": "system",
                 "content": """
                 Welcome to Choosing: the advanced Restaurant Recommender System!
-                Your goal is to craft tailored restaurant recommendations by aligning user preferences with reviews.
+                Your goal is to craft tailored restaurant recommendations by aligning user preferences with restaurant reviews.
 
                 You will read user <preferences> from a normal text and restaurant reviews <context> from a dictionary with this structure:
                 {
@@ -125,35 +125,37 @@ def promptLLM(context: str, preferences: str, lang: str):
                 {
                 "role": "user",
                 "content": f"""
-                Search for restaurants with reviews aligning with my preferences:
+                Hello!
+                Find the top restaurants based on reviews you will read in <context> considering my <preferences>.
+
+                To produce your answer, follow these steps:
+                1) read all restaurant reviews from <context> and COUNT the number of reviews that are specifically mentioning my <preferences>.
+                2) if you don't find any relevant review (COUNT=0) just write this default message: Among the top 7 restaurants in the selected area, none seem to reflect your preferences. Please try another search.
+                3) else
+                    3.1) Count the number of relevant reviews per restaurant. More corresponding reviews suggest a higher likelihood that the restaurant is recommendable! Exclude restaurants with no relevant reviews.
+                    3.2) Analyze the sentiment of the reviews to craft your recommendations. Give high priority to my <preferences>. Always remember that I am looking for tailored recommendations, not generic ones!
+                    
+                    Your answer should highlight:
+                    - The restaurant name.
+                    - A brief explanation of why you consider the restaurant a good fit for <preferences>.
+                    - A list of specific dishes (single names only) found in reviews that potentially match <preferences> (leave empty if unsure).
+                    - Your confidence level about your answer, in percentage.
+                    Discard all the recommanded restaurants with a confidence level below 60%.
+
                 <preferences>
                 "{preferences}"
                 </preferences>
 
-                Restaurant reviews:
                 <context>
                 {context}
                 </context>
-
-                Engage in RAG (Retrieval Augmented Generation) following these steps:
-                1) Filter out irrelevant reviews based on <preferences>.
-                2) Assess the number of relevant reviews per restaurant, highlighting this count for decision-making. More matching reviews suggest a better fit! Exclude restaurants with no relevant reviews.
-                3) Analyze retained reviews to craft your recommendations. Give high priority to the expressed <preferences>. Don't include the restaurants excluded in step 2 in your final answer.
-
-                Your answer should highlight:
-                - The restaurant name.
-                - A brief explanation of why you consider the restaurant a good fit for <preferences>.
-                - A list of specific dishes (single names only) found in reviews that potentially match <preferences> (leave empty if unsure).
-                - Your confidence level about your answer in percentage.
-
-                Your answer should not include restaurants whose reviews do not contain any direct mentions to <preferences>, even if they are highly recommended in general. Remember: I am looking for tailored recommendations, not general ones!
-
+         
                 """
                 }
             ],
-            model="llama2-70b-4096",
+            model="mixtral-8x7b-32768",
             temperature=0,
-            max_tokens=512
+            max_tokens=768
         )
     else:
         chat_completion = client.chat.completions.create(
@@ -188,18 +190,19 @@ def promptLLM(context: str, preferences: str, lang: str):
                 {context}
                 </contesto>
 
-                Prova a ragionare come se facessi RAG (Retrieval Augmented Generation) seguendo questi passaggi:
-                1) Filtra le recensioni non rilevanti in base alle <preferenze>.
-                2) Conta il numero di recensioni rilevanti per ristorante. Più recensioni corrispondenti suggeriscono una più alta probabilità che quel ristorante sia da consigliare! Escludi i ristoranti senza recensioni rilevanti.
-                3) Analizza le recensioni rimaste per creare le tue raccomandazioni. Dai alta priorità alle <preferenze> espresse. Non includere i ristoranti esclusi nel passaggio 2 nella tua risposta finale.
+                Prova a ragionare seguendo questi passaggi:
+                1) Per ogni ristorante in <contesto>, escludi tutte le recensioni che non hanno corrispondenze dirette con le mie <preferenze>.
+                2) Conta il numero di recensioni rimanenti per ristorante. Più recensioni corrispondenti suggeriscono una più alta probabilità che quel ristorante sia da consigliare! Escludi i ristoranti senza recensioni rimanenti.
+                3) Analizza il sentiment delle recensioni rimanenti per creare le tue raccomandazioni. Dai alta priorità alle mie <preferenze>. Ricordati sempre che sto cercando raccomandazioni personalizzate, non generiche!
 
                 La tua risposta dovrà evidenziare:
                 - Il nome del ristorante.
                 - La spiegazione del posizionamento in classifica che hai assegnato a questo ristorante in funzione delle <preferenze>.
                 - L'elenco dei piatti specifici (solo nomi singoli) trovati nelle recensioni che corrispondono alle <preferenze> (lascia vuoto se non sei sicuro).
-                - Il tuo livello di confidenza riguardo la tua risposta in percentuale.
-
-                La tua risposta non deve includere ristoranti le cui recensioni non contengono menzioni dirette alle <preferenze>, anche se sono altamente raccomandati in generale. Ricorda: sto cercando raccomandazioni personalizzate, non generiche.
+                - Il tuo livello di confidenza riguardo la tua risposta, in percentuale.
+                
+                Se non c'è nessun ristorante in linea con le mie <preferenze>, rispondi solo con il seguente messaggio di default:
+                - Tra i 7 migliori ristoranti della zona selezionata, nessuno sembra rispecchiare le tue <preferenze>. Prova un'altra ricerca.
                 """
                 }
             ],
