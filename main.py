@@ -303,7 +303,7 @@ elif day_trip_button:
             cocktail_placeid = [list(best_cocktails.keys())[0]]
             #cocktail_latlon = [best_cocktails[cocktail_placeid]['lat'], best_cocktails[cocktail_placeid]['lng']]
 
-            ch_restaurant = Choosing('id', radius, "restaurant", st.query_params['lang'], st.session_state['latlon'].values[0])
+            ch_restaurant = Choosing('id', radius, "restaurants", st.query_params['lang'], st.session_state['latlon'].values[0])
             best_restaurants = ch_restaurant.formatted_df_to_dict
             restaurant_placeid = [list(best_restaurants.keys())[0]]
             #restaurant_latlon = [best_restaurants[restaurant_placeid]['lat'], best_restaurants[restaurant_placeid]['lng']]
