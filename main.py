@@ -97,7 +97,7 @@ def get_index_for_selectbox(last_selection:str, mapping:dict):
     return sorted(list(mapping.values()), reverse=True).index(last_selection)
 
 with col2:
-    keywords = {"🍴": "restaurant", "🍺": "pub", "📌": "point+of+interest", "🍕": "pizzeria", "🏛️": "museum", "🍸": "cocktail", "🧙‍♂️": "a+day+trip"}
+    keywords = {"🍴": "restaurants", "🍺": "pub", "📌": "point+of+interest", "🍕": "pizzeria", "🏛️": "museum", "🍸": "cocktail", "🧙‍♂️": "a+day+trip"}
 
     if "keyword" not in st.query_params:
         st.query_params['keyword'] = 'restaurant'
