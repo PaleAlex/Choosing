@@ -100,7 +100,7 @@ with col2:
     keywords = {"🍴": "restaurants", "🍺": "pub", "📌": "point+of+interest", "🍕": "pizzeria", "🏛️": "museum", "🍸": "cocktail", "🧙‍♂️": "a+day+trip"}
 
     if "keyword" not in st.query_params:
-        st.query_params['keyword'] = 'restaurant'
+        st.query_params['keyword'] = 'restaurants'
 
     def set_keyword() -> None:
         if "selected_keyword" in st.session_state:
@@ -177,9 +177,9 @@ with map_expander:
                                                     if st.query_params['lang']=='it' else \
                                                     'I want to eat handmade pasta like Lasagna or Tagliatelle'
                     
-                    specific_request_status = False if st.query_params['keyword']=='restaurant' else True
+                    specific_request_status = False if st.query_params['keyword']=='restaurants' else True
 
-                    if st.query_params['keyword']=='restaurant':
+                    if st.query_params['keyword']=='restaurants':
                         specific_request_help = None
                     else:
                         specific_request_help = 'Disponibile solo per la ricerca di ristoranti'\
@@ -217,12 +217,12 @@ if search_button:
     title_string = "#### 🎉 Ecco cosa ha trovato per te Choosing!" if st.query_params['lang']=='it' else "#### 🎉 Here is what Choosing has found for you!"
     st.write(title_string)   
     
-    if specific_request=="" or st.query_params['keyword'] != 'restaurant':
+    if specific_request=="" or st.query_params['keyword'] != 'restaurants':
         spinner_label_1 = 'Sto cercando...' if st.query_params['lang']=='it' else "I am searching..."
 
         with st.spinner(spinner_label_1):
             recommandations_placeids = ch.formatted_df_to_dict.keys()
-            if len(recommandations_placeids)<7 and st.query_params['keyword'] == 'restaurant':
+            if len(recommandations_placeids)<7 and st.query_params['keyword'] == 'restaurants':
                 warning_label = "Non sono stato bravo a trovare molti suggerimenti. Prova a modificare l'indirizzo e cerca di nuovo" \
                                 if st.query_params['lang']=='it' else \
                                 "I couldn't give you enough recommandations. Try to change the address and search again"
@@ -231,7 +231,7 @@ if search_button:
             all_cards_html = myfunc.create_cards(recommandations_placeids, ch)
         st.markdown(all_cards_html, unsafe_allow_html=True)
     
-    elif specific_request!="" and st.query_params['keyword'] == 'restaurant':
+    elif specific_request!="" and st.query_params['keyword'] == 'restaurants':
 
         best_places_to_be_analyzed = ch.formatted_df_to_dict
         recommandations_placeids = best_places_to_be_analyzed.keys()
