@@ -79,6 +79,9 @@ class Choosing():
 
 
         metadata['phone_number'] = jj.get('result', {}).get('international_phone_number', None)
+        metadata['google_url'] = jj.get('result', {}).get('url', None)
+        metadata['website'] = jj.get('result', {}).get('website', None)
+        metadata['accessible'] = jj.get('result', {}).get('wheelchair_accessible_entrance', None)
 
         reviews = jj.get('result', {}).get('reviews', [])
 

@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from groq import Groq
 import geocoder
-#import ast
 
 
 def get_coordinates(address: str) -> pd.DataFrame:
@@ -16,26 +15,6 @@ def get_coordinates(address: str) -> pd.DataFrame:
         "lon": [long]
     })
     return latlon
-
-# def get_current_gps_coordinates(my_loc:dict):
-
-#     lat = my_loc['coords']['latitude']
-#     long = my_loc['coords']['longitude']
-#     accuracy = my_loc['coords']['accuracy']
-
-#     g = geocoder.osm([lat,long], method='reverse')
-#     try:
-#         address = g.street + ", " + g.city + ", " + g.country
-#     except TypeError:
-#         address = g.city + ", " + g.country
-#     else:
-#         return [None,None,None]
-#     latlon = pd.DataFrame({
-#         "lat": [lat],
-#         "lon": [long]
-#     })
-#     return latlon, address, accuracy
-
 
 def create_cards(recommandations_placeids: list, choosing_instance, llm_answer=None):
     # store card HTML content
@@ -58,7 +37,7 @@ def create_cards(recommandations_placeids: list, choosing_instance, llm_answer=N
         price_level = metadata['price_level']
         viz_price_level = price_levels[price_level]
 
-        score = np.round(metadata['score'], 2)
+        score = np.round(metadata['score'], 1)
 
         if llm_answer:
             if metadata['name'] not in llm_answer:
@@ -69,18 +48,19 @@ def create_cards(recommandations_placeids: list, choosing_instance, llm_answer=N
             <div class="restaurant-card">
                 <div class="grid-container">
                     <div class="grid-item">
-                        <h1 class="restaurant-name">{rank}° · {metadata['name']}</h1>
+                        <h1 class="restaurant-name"><a href={metadata['website'] if metadata['website'] else ""}> {rank}° · {metadata['name']}</a></h1>
                         <p class="restaurant-info"> <strong>Scores</strong>
                             <ul class="details">
                                 <li>Choosing Score: {score} </li>
-                                <li>Price level: {viz_price_level} </li> 
+                                <li>Price level: {viz_price_level} </li>
+                                <li>Wheelchair accessibility: {"🟢" if metadata['accessible'] else "🔴"} </li>
                             </ul>
                         </p>
                     </div>
                     <div class="grid-item">
                         <p class="restaurant-info">
                             <ul class="details">
-                                <li> <strong> Address: </strong> <a href='https://www.google.com/maps/place/{metadata['vicinity'].replace("/","")}'> {metadata['vicinity']} </a> </li>
+                                <li> <strong> Address: </strong> <a href={metadata['google_url']}> {metadata['vicinity']} </a> </li>
                                 <li> <strong> Phone:   </strong> <a href="tel:{"".join(metadata['phone_number'].split(" ")[1:]) if metadata['phone_number'] else ""}">
                                                                     {metadata['phone_number'] if metadata['phone_number'] else "❔"}
                                                                     </a> </li>

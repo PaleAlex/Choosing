@@ -3,7 +3,6 @@ from choosing import *
 import module as myfunc
 import streamlit as st
 from PIL import Image
-#from streamlit_js_eval import get_geolocation
 
 st.set_page_config(page_title="Choosing: enjoy your best meal",
                    page_icon="🔍",
@@ -79,23 +78,9 @@ css_style = """
     }
 }
 
-/*
-iframe {
-    display: none !important;
-    background-color: transparent;
+.st-emotion-cache-1pibh61.e1nzilvr3 {
+    display: none;
 }
-
-.__web-inspector-hide-shortcut__ {
-    display: none !important;
-    background-color: transparent;
-}
-
-@media only screen and (max-width: 768px) {
-    .stCheckbox {
-        display: none;
-    }
-}
-*/
 
 </style>
 """
@@ -112,11 +97,10 @@ def get_index_for_selectbox(last_selection:str, mapping:dict):
     return sorted(list(mapping.values()), reverse=True).index(last_selection)
 
 with col2:
-    keywords = {"🍴": "restaurant", "🍺": "pub", "🍕": "pizzeria", "🍸": "cocktail"}
+    keywords = {"🍴": "restaurant", "🍺": "pub", "📌": "point+of+interest", "🍕": "pizzeria", "🏛️": "museum", "🍸": "cocktail", "🧙‍♂️": "a+day+trip"}
 
     if "keyword" not in st.query_params:
         st.query_params['keyword'] = 'restaurant'
-        #st.rerun()
 
     def set_keyword() -> None:
         if "selected_keyword" in st.session_state:
@@ -138,7 +122,6 @@ with col3:
 
     if "lang" not in st.query_params:
         st.query_params['lang'] = 'it'
-        #st.rerun()
 
     def set_language() -> None:
         if "selected_language" in st.session_state:
@@ -159,43 +142,20 @@ with col3:
 expander_label = "Dove vuoi cercare?" if st.query_params['lang']=='it' else 'Where do you want to search?'
 map_expander = st.expander(label=expander_label, expanded=True)
 search_button = False
+day_trip_button = False
 
 if 'address' not in st.session_state:
     st.session_state['address'] = ""
 if 'latlon' not in st.session_state:
     st.session_state['latlon'] = None
 
-#default_radius_value = 0.5
-
 with map_expander:  
-    # try:
-    #     my_loc = get_geolocation()
-    #     def fill_text_input():
-    #         current_gps_coordinates = myfunc.get_current_gps_coordinates(my_loc) 
-    #         if current_gps_coordinates[1]:
-    #             st.session_state['text_input'] = current_gps_coordinates[1]
-    #         else:
-    #             st.session_state['text_input'] = 'POSITION NOT FOUND'
-    # except TypeError:
-    #     my_loc = None
 
     addresstextinput_placeholder = '🔍 Digita un indirizzo o un punto di riferimento (e.g. Piazza del Colosseo, Roma)' \
                                      if st.query_params['lang']=='it' else \
                                      "🔍 Write an address or a landmark (e.g. Colosseum, Rome)"
     
     address = st.text_input(label='Cosa vuoi cercare', key='text_input', placeholder=addresstextinput_placeholder, label_visibility='collapsed')
-    
-    #current_position_label = "📍Oppure cerca vicino a te" if st.query_params['lang']=='it' else '📍 Or find near to you'
-    #current_position_status = True if my_loc is None else False
-    #current_position_help = "Allow for geolocation first!" if my_loc is None else None
-
-    # if st.checkbox(current_position_label, disabled=current_position_status, help=current_position_help, on_change=fill_text_input):
-    #     current_gps_coordinates = myfunc.get_current_gps_coordinates(my_loc)
-    #     st.session_state['latlon'] = current_gps_coordinates[0]
-    #     st.session_state['address'] = 'current'
-    #     default_radius_value = current_gps_coordinates[2]/1000 if current_gps_coordinates[2] else None
-    # elif address:
-
     
     st.session_state['address'] = address
     
@@ -206,33 +166,38 @@ with map_expander:
 
             with colcol2:
                 radius_label = "**Raggio [km]**" if st.query_params['lang']=='it' else "**Radius [km]**"
-                radius = st.number_input(radius_label, min_value=0.5, step=0.5, key='radius_input')*1000 #value=default_radius_value
+                radius = st.number_input(radius_label, min_value=0.5, step=0.5, key='radius_input')*1000
 
-                specific_request_label = "Opzionale: descrivimi cosa ti piacerebbe mangiare! 😉 (*Powered by LLM*)" \
-                                         if st.query_params['lang']=='it' else \
-                                         "Optional: tell me what do you want to eat! 😉 (*Powered by LLM*)"
-                
-                specific_request_placeholder = 'Vorrei mangiare pasta fresca fatta in casa' \
-                                                if st.query_params['lang']=='it' else \
-                                                'I want to eat handmade pasta like Lasagna or Tagliatelle'
-                
-                specific_request_status = False if st.query_params['keyword']=='restaurant' else True
-
-                if st.query_params['keyword']=='restaurant':
-                    specific_request_help = None
-                else:
-                    specific_request_help = 'Disponibile solo per la ricerca di ristoranti'\
+                if st.query_params['keyword'] != "a+day+trip":
+                    specific_request_label = "Opzionale: descrivimi cosa ti piacerebbe mangiare! 😉 (*Powered by LLM*)" \
                                             if st.query_params['lang']=='it' else \
-                                            'Available only for restaurant recommandation'
+                                            "Optional: tell me what do you want to eat! 😉 (*Powered by LLM*)"
+                    
+                    specific_request_placeholder = 'Vorrei mangiare pasta fresca fatta in casa' \
+                                                    if st.query_params['lang']=='it' else \
+                                                    'I want to eat handmade pasta like Lasagna or Tagliatelle'
+                    
+                    specific_request_status = False if st.query_params['keyword']=='restaurant' else True
 
-                specific_request = st.text_area(specific_request_label, max_chars=80, key="prompt_text_area", placeholder=specific_request_placeholder, help=specific_request_help, disabled=specific_request_status)
+                    if st.query_params['keyword']=='restaurant':
+                        specific_request_help = None
+                    else:
+                        specific_request_help = 'Disponibile solo per la ricerca di ristoranti'\
+                                                if st.query_params['lang']=='it' else \
+                                                'Available only for restaurant recommandation'
+
+                    specific_request = st.text_area(specific_request_label, max_chars=80, key="prompt_text_area", placeholder=specific_request_placeholder, help=specific_request_help, disabled=specific_request_status)
+                    
+                    search_button_label = "Trova" if st.query_params['lang']=='it' else 'Find'
+                    search_button = st.button(f"{search_button_label} {[k for k, v in keywords.items() if v == st.query_params['keyword']][0]}")
                 
-                search_button_label = "Trova" if st.query_params['lang']=='it' else 'Find'
-                search_button = st.button(f"{search_button_label} {[k for k, v in keywords.items() if v == st.query_params['keyword']][0]}")
-            
+                else:
+                    st.write("")
+                    day_trip_button = st.button("🧙‍♂️ One-day trip 🧙‍♂️", type='primary')
+
             with colcol1:
                 if radius < 2000:
-                    zoom=13
+                    zoom = 13
                 else:
                     zoom = 11
                 st.map(st.session_state['latlon'], zoom = zoom, size=radius) 
@@ -263,7 +228,7 @@ if search_button:
                                 "I couldn't give you enough recommandations. Try to change the address and search again"
                 st.warning(warning_label, icon='😖')
 
-            all_cards_html = create_cards(recommandations_placeids, ch)
+            all_cards_html = myfunc.create_cards(recommandations_placeids, ch)
         st.markdown(all_cards_html, unsafe_allow_html=True)
     
     elif specific_request!="" and st.query_params['keyword'] == 'restaurant':
@@ -293,11 +258,11 @@ if search_button:
                 st.warning(LLM_warning_label, icon='😖')
                 info_label = "**Top ristoranti nella zona:** \n" if st.query_params['lang']=='it' else "**Top restaurants in the area:** \n"
                 st.write(info_label)
-                all_cards_html = create_cards(recommandations_placeids, ch)
+                all_cards_html = myfunc.create_cards(recommandations_placeids, ch)
                 st.markdown(all_cards_html, unsafe_allow_html=True)
             else:
                 st.markdown(f"""{LLM_matched_places} *""")
-                all_cards_html = create_cards(recommandations_placeids, ch, LLM_matched_places)
+                all_cards_html = myfunc.create_cards(recommandations_placeids, ch, LLM_matched_places)
                 st.markdown(all_cards_html, unsafe_allow_html=True)
                 
                 st.write("")
@@ -313,8 +278,97 @@ if search_button:
 
                 st.markdown(f"""<i><small>{LLM_advisor_label}</small></i>""", unsafe_allow_html=True)
 
-               
+elif day_trip_button:
+    st.write("#### 🎉 Your best one-day trip!")
+    try:  
+        spinner_label_4 = 'Cercando i migliori posti...' if st.query_params['lang']=='it' else "Looking for the best places..."
+        with st.spinner(spinner_label_4):
+            ch_museums = Choosing('id', radius, "museum", st.query_params['lang'], st.session_state['latlon'].values[0])
+            best_museums = ch_museums.formatted_df_to_dict
+            museum_placeid = [list(best_museums.keys())[0]] #get the first best
+            #museum_latlon = [best_museums[museum_placeid]['lat'], best_museums[museum_placeid]['lng']]
+
+            ch_pois = Choosing('id', radius, "point+of+interest", st.query_params['lang'], st.session_state['latlon'].values[0])
+            best_pois = ch_pois.formatted_df_to_dict
+            poi_placeids = list(best_pois.keys())
+            if museum_placeid[0] in poi_placeids:
+                poi_placeids.remove(museum_placeid[0])
+            poi1_placeid = [poi_placeids[0]]
+            poi2_placeid = [poi_placeids[1]]
+            #poi1_latlon = [best_pois[poi1_placeid]['lat'], best_pois[poi1_placeid]['lng']]
+            #poi2_latlon = [best_pois[poi2_placeid]['lat'], best_pois[poi2_placeid]['lng']]
+
+            ch_cocktail = Choosing('id', radius, "cocktail", st.query_params['lang'], st.session_state['latlon'].values[0])
+            best_cocktails = ch_cocktail.formatted_df_to_dict
+            cocktail_placeid = [list(best_cocktails.keys())[0]]
+            #cocktail_latlon = [best_cocktails[cocktail_placeid]['lat'], best_cocktails[cocktail_placeid]['lng']]
+
+            ch_restaurant = Choosing('id', radius, "restaurant", st.query_params['lang'], st.session_state['latlon'].values[0])
+            best_restaurants = ch_restaurant.formatted_df_to_dict
+            restaurant_placeid = [list(best_restaurants.keys())[0]]
+            #restaurant_latlon = [best_restaurants[restaurant_placeid]['lat'], best_restaurants[restaurant_placeid]['lng']]
+            
+            ch_pub = Choosing('id', radius, "pub", st.query_params['lang'], st.session_state['latlon'].values[0])
+            best_pubs = ch_pub.formatted_df_to_dict
+            pub_placeid = [list(best_pubs.keys())[0]]
+            #pub_latlon = [best_pubs[pub_placeid]['lat'], best_pubs[pub_placeid]['lng']]
+
+        spinner_label_5 = 'Pianificando il tuo itinerario...' if st.query_params['lang']=='it' else "Planning your trip..."
+        with st.spinner(spinner_label_5):
+            museum_card = myfunc.create_cards(museum_placeid, ch_museums)
+            poi1_card = myfunc.create_cards(poi1_placeid, ch_pois)
+            poi2_card = myfunc.create_cards(poi2_placeid, ch_pois)
+            cocktail_card = myfunc.create_cards(cocktail_placeid, ch_cocktail)
+            restaurant_card = myfunc.create_cards(restaurant_placeid, ch_restaurant)
+            pub_card = myfunc.create_cards(pub_placeid, ch_pub)
         
+        trip_label1 = '🏁📌 Inizia il tuo itinerario alle ore 14:30 e dirigiti verso la tua prima tappa:' if st.query_params['lang']=='it' else "🏁📌 Start your trip at 2:30pm and head to your first stop:"
+        st.write(trip_label1)
+        st.markdown(poi1_card, unsafe_allow_html=True)
+
+        trip_label2 = "🏛️ A seguire, puoi visitare:" if st.query_params['lang']=='it' else "🏛️ Afterwards, you can visit:"
+        st.write(trip_label2)
+        st.markdown(museum_card, unsafe_allow_html=True)
+
+        trip_label3 = "🍸 Fai una pausa e fermati a bere qualcosa:" if st.query_params['lang']=='it' else "🍸 Take a break and stop for a drink:"
+        st.write(trip_label3)
+        st.markdown(cocktail_card, unsafe_allow_html=True)
+
+        trip_label4 = "📌 Quando hai ricaricato le energie, raggiungi:" if st.query_params['lang']=='it' else "📌 When you have recharged your energy, move towards:"
+        st.write(trip_label4)
+        st.markdown(poi2_card, unsafe_allow_html=True)
+
+        trip_label5 = "🍴 Per cena, prenota un tavolo qua:" if st.query_params['lang']=='it' else "🍴 For dinner, book a table here:"
+        st.write(trip_label5)
+        st.markdown(restaurant_card, unsafe_allow_html=True) 
+
+        trip_label6 = "🏁🍺 E infine concludi la tua giornata in bellezza:" if st.query_params['lang']=='it' else "🏁🍺 And finally end your trip on a high note:"
+        st.write(trip_label6)
+        st.markdown(pub_card, unsafe_allow_html=True)   
+
+        final_advisory = """*Prima di pianificare il tuo viaggio, ricordati di controllare gli orari di apertura e di prenotare le visite ai musei/luoghi di interesse.
+                            Quando possibile, scegli mezzi di trasporto sostenibili per i tuoi spostamenti, come bicicletta o mezzi pubblici*""" \
+                         if st.query_params['lang']=='it' else \
+                         """*Before planning your trip, check the opening hours and book your visits to museums/points of interest.
+                            Whenever possible, choose sustainable means of transportation for your travels, such as bicycles or public transportation.*"""
+        
+        st.write(final_advisory)  
+
+    except (KeyError, IndexError):
+        warning_label = "Non sono stato bravo a trovare molti suggerimenti. Prova a modificare l'indirizzo o aumentare il raggio di ricerca" \
+                        if st.query_params['lang']=='it' else \
+                        "I couldn't found enough recommandations. Try to change the address or the radius and search again"
+        st.warning(warning_label, icon='😖')
+
+
+
+
+
+
+
+
+
+ 
 #FOOTER
 footer="""
 <style>
