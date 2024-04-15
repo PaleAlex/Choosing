@@ -364,11 +364,6 @@ elif day_trip_button:
 
 
 
-
-
-
-
- 
 #FOOTER
 footer="""
 <style>
@@ -400,7 +395,6 @@ footer="""
 
 <div class="footer">
     <small>
-    <a href="https://www.linkedin.com/in/ac-palealex/", target="_blank", class="to_hide"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"/></a>
     <a href="https://www.youtube.com/@choosingclub", target="_blank", class="to_hide"><img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white"/></a>
     <a href="https://www.buymeacoffee.com/palealex", target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png"/></a>
     <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fchoosing.club%2F&label=Visitors&labelColor=%23ff8a65&countColor=%23d9e3f0" />
