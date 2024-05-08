@@ -23,9 +23,9 @@ def get_coordinates(address: str) -> pd.DataFrame:
     # Encode the address to handle special characters
     address = urllib.parse.quote(address)
     
-    url = f'https://nominatim.openstreetmap.org/search?q={address}&format=json&addressdetails=1&limit=1&polygon_svg=1'
+    url = f'https://nominatim.openstreetmap.org/search?q={address}&format=json&addressdetails=1&limit=1'
     response = requests.get(url)
-    json_response = json.loads(response.text)
+    json_response = json.loads(response.text)[0]
 
     lat = json_response['lat']
     long = json_response['lon'] 
