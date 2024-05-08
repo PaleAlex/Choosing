@@ -5,4 +5,5 @@ requests==2.28.1
 streamlit==1.32.0
 python-dotenv==1.0.1
 groq==0.4.2
+geopy==2.4.1
 

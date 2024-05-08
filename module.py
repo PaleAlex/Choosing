@@ -1,38 +1,25 @@
-from config import groq_api_key
+from config import groq_api_key, maps_api_key
 
 import numpy as np
 import pandas as pd
 from groq import Groq
-import json
-import requests
-import urllib
+from geopy.geocoders import GoogleV3, Nominatim
 
 
 def get_coordinates(address: str) -> pd.DataFrame:
-    """
-    Formats a street address to be used as a query parameter in a URL.
-    
-    Args:
-        address (str): The street address to be formatted.
-        
-    Returns:
-        list: [lat,lon]
-    """
 
-    
-    # Encode the address to handle special characters
-    address = urllib.parse.quote(address)
-    
-    url = f'https://nominatim.openstreetmap.org/search?q={address}&format=json&addressdetails=1&limit=1'
-    response = requests.get(url)
-    json_response = json.loads(response.text)[0]
+    geolocator = Nominatim(user_agent="choosingclub_webapp")
+    location = geolocator.geocode(address)
+    #geolocator = GoogleV3(maps_api_key)
+    #location = geolocator.geocode(address)
 
-    lat = json_response['lat']
-    long = json_response['lon'] 
+    lat = location.latitude
+    long = location.longitude
     latlon = pd.DataFrame({
         "lat": [lat],
         "lon": [long]
     })
+
     return latlon
 
 def create_cards(recommandations_placeids: list, choosing_instance, llm_answer=None):
