@@ -310,7 +310,10 @@ elif day_trip_button:
             
             ch_pub = Choosing('id', radius, "pub", st.query_params['lang'], st.session_state['latlon'].values[0])
             best_pubs = ch_pub.formatted_df_to_dict
-            pub_placeid = [list(best_pubs.keys())[0]]
+            pub_placeids = list(best_pubs.keys())
+            if cocktail_placeid[0] in pub_placeids:
+                pub_placeids.remove(cocktail_placeid[0])
+            pub_placeid = [pub_placeids[0]]
             #pub_latlon = [best_pubs[pub_placeid]['lat'], best_pubs[pub_placeid]['lng']]
 
         spinner_label_5 = 'Pianificando il tuo itinerario...' if st.query_params['lang']=='it' else "Planning your trip..."
