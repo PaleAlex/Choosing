@@ -166,7 +166,7 @@ with map_expander:
 
             with colcol2:
                 radius_label = "**Raggio [km]**" if st.query_params['lang']=='it' else "**Radius [km]**"
-                radius = st.number_input(radius_label, min_value=0.5, step=0.5, key='radius_input')*1000
+                radius = st.number_input(radius_label, min_value=0.5, max_value=4.0, step=0.5, key='radius_input')*1000
 
                 if st.query_params['keyword'] != "a+day+trip":
                     specific_request_label = "Opzionale: descrivimi cosa ti piacerebbe mangiare! 😉 (*Powered by LLM*)" \
@@ -186,7 +186,7 @@ with map_expander:
                                                 if st.query_params['lang']=='it' else \
                                                 'Available only for restaurant recommandation'
 
-                    specific_request = st.text_area(specific_request_label, max_chars=80, key="prompt_text_area", placeholder=specific_request_placeholder, help=specific_request_help, disabled=specific_request_status)
+                    specific_request = st.text_area(specific_request_label, max_chars=100, key="prompt_text_area", placeholder=specific_request_placeholder, help=specific_request_help, disabled=specific_request_status)
                     
                     search_button_label = "Trova" if st.query_params['lang']=='it' else 'Find'
                     search_button = st.button(f"{search_button_label} {[k for k, v in keywords.items() if v == st.query_params['keyword']][0]}")

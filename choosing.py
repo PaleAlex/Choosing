@@ -20,9 +20,15 @@ class Choosing():
         
 
     def first_seven_best_suggestions(self) -> dict:
-            
         possibilities = []
-        url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location='+str(self.coordinates[0])+'%2C'+str(self.coordinates[1])+'&radius='+str(self.radius)+'&keyword='+str(self.keyword)+'&key='+str(self.maps_api_key)
+        
+        #----tracking restaurants in Italy (more precise)-----
+        if self.lang == 'it' and self.keyword == 'restaurants':
+            it_keyword = 'ristorante'
+            url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location='+str(self.coordinates[0])+'%2C'+str(self.coordinates[1])+'&radius='+str(self.radius)+'&keyword='+str(it_keyword)+'&key='+str(self.maps_api_key)
+        else:
+            url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location='+str(self.coordinates[0])+'%2C'+str(self.coordinates[1])+'&radius='+str(self.radius)+'&keyword='+str(self.keyword)+'&key='+str(self.maps_api_key)
+        
         resp = requests.get(url)
         jj = json.loads(resp.text)
         results = jj['results']
