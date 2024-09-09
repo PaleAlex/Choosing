@@ -139,9 +139,9 @@ def promptLLM(context: str, preferences: str, lang: str):
                 """
                 }
             ],
-            model="mixtral-8x7b-32768",
+            model="llama-3.1-70b-versatile",
             temperature=0,
-            max_tokens=768
+            max_tokens=1024
         )
     else:
         chat_completion = client.chat.completions.create(
@@ -192,9 +192,9 @@ def promptLLM(context: str, preferences: str, lang: str):
                 """
                 }
             ],
-            model="mixtral-8x7b-32768",
+            model="llama-3.1-70b-versatile",
             temperature=0,
-            max_tokens=512
+            max_tokens=1024
         )
     return chat_completion.choices[0].message.content
 
