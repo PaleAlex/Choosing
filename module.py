@@ -139,7 +139,7 @@ def promptLLM(context: str, preferences: str, lang: str):
                 """
                 }
             ],
-            model="llama-3.1-70b-versatile",
+            model="llama-3.3-70b-versatile",
             temperature=0,
             max_tokens=1024
         )
@@ -192,7 +192,7 @@ def promptLLM(context: str, preferences: str, lang: str):
                 """
                 }
             ],
-            model="llama-3.1-70b-versatile",
+            model="llama-3.3-70b-versatile",
             temperature=0,
             max_tokens=1024
         )
