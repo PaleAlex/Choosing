@@ -43,8 +43,6 @@ def create_cards(recommandations_placeids: list, choosing_instance, llm_answer=N
         price_level = metadata['price_level']
         viz_price_level = price_levels[price_level]
 
-        score = np.round(metadata['score'], 1)
-
         if llm_answer:
             if metadata['name'] not in llm_answer:
                 rank -= 1
@@ -57,7 +55,7 @@ def create_cards(recommandations_placeids: list, choosing_instance, llm_answer=N
                         <h1 class="restaurant-name"><a href={metadata['website'] if metadata['website'] else ""}> {rank}° · {metadata['name']}</a></h1>
                         <p class="restaurant-info"> <strong>Scores</strong>
                             <ul class="details">
-                                <li>Choosing Score: {score} </li>
+                                <li>Choosing Score: {metadata['score'] if metadata['score'] else "❔"}/100 </li>
                                 <li>Price level: {viz_price_level} </li>
                                 <li>Wheelchair accessibility: {"🟢" if metadata['accessible'] else "🔴"} </li>
                             </ul>
@@ -104,7 +102,7 @@ def promptLLM(context: str, preferences: str, lang: str):
                 ...
                 }
 
-                Return your answer in a formatted and readable markdown.
+                Return your answer in a formatted and readable markdown and using max 260 words.
                 Best of luck with your personalized suggestions!
                 """
                 },
@@ -141,7 +139,7 @@ def promptLLM(context: str, preferences: str, lang: str):
             ],
             model="llama-3.3-70b-versatile",
             temperature=0,
-            max_tokens=1024
+            max_tokens=768
         )
     else:
         chat_completion = client.chat.completions.create(
@@ -159,7 +157,7 @@ def promptLLM(context: str, preferences: str, lang: str):
                 ...
                 }
 
-                Restituisci in output la tua risposta in un formato markdown leggibile e chiaro.
+                Restituisci in output la tua risposta in un formato markdown leggibile e chiaro, con lunghezza massima di 260 parole.
                 Buona fortuna con i tuoi consigli!
                 """
                 },

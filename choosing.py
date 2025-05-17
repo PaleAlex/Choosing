@@ -32,31 +32,54 @@ class Choosing():
         resp = requests.get(url)
         jj = json.loads(resp.text)
         results = jj['results']
+        
         for result in results:
             place_id = result['place_id']
             name = result['name']
             lat = result['geometry']['location']['lat']
             lng = result['geometry']['location']['lng']
-            rating = result['rating']
-            n_rating = result['user_ratings_total']
             price_level = result.get('price_level', 0)
             vicinity = result['vicinity']
-            score = rating * np.log(0.001 + np.sqrt(n_rating))
 
-            #quality constraints
-            if score < 12:
-                continue
-            elif any(word in name for word in ('Donald', 'Roadhouse', 'Burger King', 'Burger king', 'Old Wild West', "Autogrill")):
-                continue
-            elif self.keyword == 'restaurant' and any(word in name for word in ('Caffè', 'Paninoteca')):
-                continue
-            
-            data = [place_id, name, lat, lng, rating, n_rating, price_level, vicinity, score]
-            possibilities.append(data)
+            if 'rating' not in result or 'user_ratings_total' not in result:
+                rating = "❔"
+                n_rating = "❔"
+                score = None
+                data = [place_id, name, lat, lng, rating, n_rating, price_level, vicinity, score]
+                possibilities.append(data)
+            else:
+                rating = result['rating']
+                n_rating = result['user_ratings_total']
+                score = rating * np.log(0.001 + np.sqrt(n_rating))
+
+                # quality constraints
+                if score < 12:
+                    continue
+                elif any(word in name for word in ('Donald', 'Roadhouse', 'Burger King', 'Burger king', 'Old Wild West', "Autogrill")):
+                    continue
+                elif self.keyword == 'restaurant' and any(word in name for word in ('Caffè', 'Paninoteca')):
+                    continue
+
+                # Cap score at 20 as a max score and convert to percentage
+                capped_score = min(score, 20)
+                try:
+                    score = int(round(capped_score / 20 * 100))
+                except ValueError:
+                    score = 0
+                data = [place_id, name, lat, lng, rating, n_rating, price_level, vicinity, score]
+                possibilities.append(data)
 
 
-        # Sort the list based on the newly added score
-        possibilities = sorted(possibilities, key=lambda x: x[-1], reverse=True)[:7]
+        if all(x[-1] is not None for x in possibilities):
+            # All have scores
+            possibilities = sorted(possibilities, key=lambda x: x[-1], reverse=True)[:7]
+        elif all(x[-1] is None for x in possibilities):
+            # None have scores
+            possibilities = possibilities[:7]
+        else:
+            # Mixed: keep only those with scores
+            scored = [x for x in possibilities if x[-1] is not None]
+            possibilities = sorted(scored, key=lambda x: x[-1], reverse=True)[:7]
 
         df = pd.DataFrame(data=possibilities, columns=["place_id", "name", "lat", "lng", "rating", "n_rating", 'price_level', "vicinity", "score"])
 
