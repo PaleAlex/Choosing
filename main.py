@@ -91,7 +91,7 @@ col1, col2, col3 = st.columns([9,1.5,1.5])
 
 with col1:
     image = Image.open('logo.png')
-    st.image(image, use_column_width=True)
+    st.image(image, use_container_width=True)
 
 def get_index_for_selectbox(last_selection:str, mapping:dict):
     return sorted(list(mapping.values()), reverse=True).index(last_selection)
