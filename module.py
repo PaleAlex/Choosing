@@ -1,11 +1,11 @@
 from config import groq_api_key, maps_api_key
-
+import streamlit as st
 import numpy as np
 import pandas as pd
 from groq import Groq
 from geopy.geocoders import GoogleV3, Nominatim
 
-
+@st.cache_data
 def get_coordinates(address: str) -> pd.DataFrame:
 
     geolocator = Nominatim(user_agent="choosingclub_webapp")

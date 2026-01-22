@@ -209,7 +209,11 @@ with map_expander:
             st.error(address_error)
             st.session_state['address'] = ""
             st.session_state['latlon'] = None
-    
+        except:
+            generic_error = "Qualcosa è andato storto, aggiorna la pagina e riprova la ricerca" \
+                            if st.query_params['lang']=='it' else \
+                            "Something went wrong, please refresh the page and try the search again"
+            st.error(generic_error)
 
 if search_button:
 
