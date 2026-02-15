@@ -202,18 +202,26 @@ with map_expander:
                     zoom = 11
                 st.map(st.session_state['latlon'], zoom = zoom, size=radius) 
 
-        except TypeError:
+        except BadAddressError:
             address_error = "C'è qualcosa che non va nell'indirizzo che hai scritto. Prova a correggerlo facendo riferimento allo standard di Google Maps" \
                             if st.query_params['lang']=='it' else \
                             "There's something wrong in your address. Try to write it better using the Google Maps standard"
             st.error(address_error)
             st.session_state['address'] = ""
             st.session_state['latlon'] = None
-        except:
-            generic_error = "Qualcosa è andato storto, aggiorna la pagina e riprova la ricerca" \
+        
+        except ServiceError:
+            service_error = "Superato il limite di chiamate del servizio, riprova più tardi :)" \
                             if st.query_params['lang']=='it' else \
-                            "Something went wrong, please refresh the page and try the search again"
+                            "Service call limit exceeded, please try again later :)"
+            st.error(service_error)
+        
+        except Exception as e:
+            generic_error = "Ops, qualcosa è andato storto. Riprova più tardi :)" \
+                            if st.query_params['lang']=='it' else \
+                            "Ops, something went wrong. Please try again later :)"
             st.error(generic_error)
+
 
 if search_button:
 

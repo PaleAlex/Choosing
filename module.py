@@ -1,26 +1,72 @@
-from config import groq_api_key, maps_api_key
+from config import groq_api_key, maps_api_key, redis_client
 import streamlit as st
 import numpy as np
 import pandas as pd
 from groq import Groq
-from geopy.geocoders import GoogleV3, Nominatim
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut, GeocoderServiceError, GeocoderUnavailable
+from datetime import datetime
+import json
 
-@st.cache_data
+class BadAddressError(Exception):
+    """No results found for address"""
+    pass
+
+class ServiceError(Exception):
+    """Nominatim service issue (quota, timeout, etc.)"""
+    pass
+
+def _redis_key_for_address(address: str) -> str:
+    """Normalize address for consistent caching"""
+    norm = address.strip().lower()
+    return f"geocode:{norm[:200]}"
+
+def _log_geocode_usage(address: str):
+    """Simple stats counter"""
+    day = datetime.utcnow().strftime("%Y-%m-%d")
+    redis_client.incr(f"stats:geocode:total:{day}")
+    addr_key = _redis_key_for_address(address)
+    redis_client.incr(f"stats:geocode:addr:{day}:{addr_key}")
+
+@st.cache_data(ttl=3600)
 def get_coordinates(address: str) -> pd.DataFrame:
+    key = _redis_key_for_address(address)
 
-    geolocator = Nominatim(user_agent="choosingclub_webapp")
-    location = geolocator.geocode(address)
-    #geolocator = GoogleV3(maps_api_key)
-    #location = geolocator.geocode(address)
+    # 1) Check Redis first
+    cached = redis_client.get(key)
+    if cached:
+        data = json.loads(cached)
+        return pd.DataFrame({"lat": [data["lat"]], "lon": [data["lon"]]})
+
+    # 2) Call Nominatim
+    try:
+        geolocator = Nominatim(user_agent="choosingclub_webapp", timeout=10)
+        location = geolocator.geocode(address)
+    except (GeocoderTimedOut, GeocoderServiceError, GeocoderUnavailable) as e:
+        _log_geocode_usage(address)   # Service problems: quota, timeout, unavailable
+        raise ServiceError(f"Nominatim service error: {str(e)}")
+
+    if location is None:
+        # Valid call but no results: cache the miss to avoid repeated calls for bad addresses
+        miss_data = {"lat": None, "lon": None}
+        redis_client.setex(key, 3600, json.dumps(miss_data))  # 1h TTL for misses
+        raise BadAddressError(f"No geocoding results for address: {address}")
 
     lat = location.latitude
-    long = location.longitude
-    latlon = pd.DataFrame({
-        "lat": [lat],
-        "lon": [long]
-    })
+    lon = location.longitude
 
-    return latlon
+    # 3) Cache hit in Redis (30 days TTL)
+    redis_client.setex(
+        key,
+        60 * 60 * 24 * 30,  # 30 days
+        json.dumps({"lat": lat, "lon": lon})
+    )
+    
+    # 4) Log the actual Nominatim call
+    _log_geocode_usage(address)
+
+    return pd.DataFrame({"lat": [lat], "lon": [lon]})
+
 
 def create_cards(recommandations_placeids: list, choosing_instance, llm_answer=None):
     # store card HTML content
